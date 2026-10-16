@@ -241,6 +241,75 @@ button{min-height:44px;touch-action:manipulation;-webkit-tap-highlight-color:tra
   .owl svg{width:62px;height:62px}.bubble{font-size:1rem}
   .hub{grid-template-columns:repeat(2,1fr)}.tile{min-height:110px}
 }
+/* ===== 1 על 1, חנות, אוסף / duel, shop, collection ===== */
+.giftBanner{display:none;background:#fff;border-radius:18px;padding:10px 14px;margin:8px 0 12px;text-align:center;font-weight:800;box-shadow:0 5px 0 #e6d9ff}
+.giftBanner.on{display:block}
+.giftBanner.hot{background:linear-gradient(#fff,#fff4cc);box-shadow:0 5px 0 #ffb703}
+.extraGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:14px}
+.petCard,.questCard{margin:0}
+.petRow{display:flex;gap:10px;align-items:center}
+.petRow .em{font-size:2.6rem}
+.qItem{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 0;border-bottom:1px dashed #eee;font-size:.95rem}
+.shopTabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.shopTabs .btn{min-height:40px}
+.lookPreview{font-size:3.2rem;text-align:center;margin:6px 0 10px}
+.hero{position:relative;display:inline-flex;width:1.35em;height:1.35em;align-items:center;justify-content:center;vertical-align:middle;line-height:1}
+.heroFace{position:relative;z-index:1}
+.heroHat{position:absolute;top:-.55em;left:50%;transform:translateX(-50%);font-size:.48em;z-index:2}
+.heroFit{position:absolute;right:-.42em;bottom:-.05em;font-size:.42em;z-index:2}
+.heroAcc{position:absolute;left:-.15em;bottom:-.2em;font-size:.4em;z-index:2}
+.hero.starling .heroFace{animation:twinkle 1.3s ease-in-out infinite}
+.hero.starling::after{content:"✦";position:absolute;top:-.15em;right:-.35em;font-size:.35em;color:#ffd23f;animation:twinkle 1s infinite}
+@keyframes twinkle{50%{transform:scale(1.12) rotate(-8deg)}}
+.hero.frame-bronze::before,.hero.frame-silver::before,.hero.frame-gold::before,.hero.frame-rainbow::before{content:"";position:absolute;inset:-.12em;border-radius:50%;border:2px solid #cd7f32}
+.hero.frame-silver::before{border-color:#c0c6d4;box-shadow:0 0 6px #fff}
+.hero.frame-gold::before{border-color:#ffd23f;box-shadow:0 0 8px #ffd23f}
+.hero.frame-rainbow::before{border-color:transparent;background:conic-gradient(#ff5fa2,#ffd23f,#2ec4b6,#6a3df0,#ff5fa2);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 0);mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 0)}
+.hero.aura-blue{filter:drop-shadow(0 0 5px #3a86ff)}
+.hero.aura-pink{filter:drop-shadow(0 0 5px #ff5fa2)}
+.hero.aura-green{filter:drop-shadow(0 0 5px #2ec4b6)}
+.hero.aura-gold{filter:drop-shadow(0 0 6px #ffd23f)}
+.hero.aura-rainbow{filter:drop-shadow(0 0 4px #ff5fa2) drop-shadow(0 0 7px #3a86ff)}
+.titleTag{display:inline-block;background:#efe8ff;color:#5b2fd6;border-radius:10px;padding:0 6px;font-size:.72rem;margin-inline-start:4px;font-weight:800}
+.t9{background:linear-gradient(135deg,#ff7eb3,#6a3df0)}
+.card.fever{box-shadow:0 0 0 4px #ff8c1a,0 10px 24px #ff8c1a55}
+body.feverOn #sStreak{color:#ff4d00;animation:pulse .9s ease-in-out infinite}
+#arenaScreen,#duelScreen{border-radius:28px;padding:8px}
+body[data-arena="forest"] #arenaScreen,body[data-arena="forest"] #duelScreen{background:linear-gradient(160deg,#2f8f45,#d4f7a6)}
+body[data-arena="ocean"] #arenaScreen,body[data-arena="ocean"] #duelScreen{background:linear-gradient(160deg,#1b6ca8,#b7ecff)}
+body[data-arena="volcano"] #arenaScreen,body[data-arena="volcano"] #duelScreen{background:linear-gradient(160deg,#8d1d3b,#ffd0a6)}
+body[data-arena="space"] #arenaScreen,body[data-arena="space"] #duelScreen{background:linear-gradient(160deg,#24194d,#6a3df0 60%,#1b243b)}
+body[data-arena="candy"] #arenaScreen,body[data-arena="candy"] #duelScreen{background:linear-gradient(160deg,#ff8cc0,#fff1c9)}
+body[data-arena="autumn"] #arenaScreen,body[data-arena="autumn"] #duelScreen{background:linear-gradient(160deg,#e07a2f,#ffe0a3)}
+.duelSplit{display:grid;grid-template-columns:1fr minmax(140px,200px) 1fr;gap:10px;align-items:stretch}
+.duelSide{background:#ffffffee;border-radius:22px;padding:10px;box-shadow:0 8px 20px #4523b018}
+.duelSide.hit{animation:fhit .4s}
+.duelMid{text-align:center;display:flex;flex-direction:column;justify-content:center;gap:6px}
+.duelQ{font-size:1.7rem;font-weight:900;color:#3b2a8f}
+.choices.mini{max-width:none}
+.choices.mini button{font-size:1.35rem;padding:10px}
+.keyHint{display:inline-block;font-size:.72rem;background:#fff;border-radius:8px;padding:0 5px;margin-inline-start:4px;color:#6a3df0}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;direction:ltr}
+.pad button{font-size:1.15rem;font-weight:800;background:#fff;border-radius:12px;box-shadow:0 3px 0 #e4dcff;min-height:42px}
+.padOut{min-height:1.4em;font-weight:900;letter-spacing:2px;direction:ltr;text-align:center}
+.wheelWrap{position:relative;width:min(300px,88vw);margin:8px auto 14px}
+.wheelPtr{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:1.7rem;z-index:2;filter:drop-shadow(0 2px 0 #fff)}
+.wheel{width:100%;aspect-ratio:1;border-radius:50%;border:8px solid #fff;box-shadow:0 8px 0 #4523b033;position:relative;transition:transform 4s cubic-bezier(.15,.7,.1,1)}
+.wseg{position:absolute;left:50%;top:0;width:70px;margin-left:-35px;height:50%;transform-origin:center bottom;display:flex;justify-content:center;padding-top:16px;font-size:.78rem;font-weight:900;color:#fff;text-shadow:0 1px 2px #0008}
+#revealLayer{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#1d0f4fcc;z-index:60}
+#revealLayer.on{display:flex}
+.mbox{font-size:6rem;animation:shake .35s linear 3}
+.revealEm{font-size:4.4rem;display:block;animation:zoom .45s cubic-bezier(.2,1.6,.4,1)}
+.avatars button small{display:block;font-size:.68rem;font-weight:700}
+.avatars button.locked{opacity:.4}
+.seasonBanner{background:linear-gradient(90deg,#e07a2f,#ffd23f);color:#4a2408;border-radius:16px;padding:8px 12px;margin-bottom:10px;font-weight:800}
+@media (max-width:760px){
+  .duelSplit{grid-template-columns:1fr}
+  .duelSide.p2{transform:rotate(180deg)}
+  .duelMid{order:-1}
+  .duelQ{font-size:1.35rem}
+  .who .titleTag{display:none}
+}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01s !important;transition-duration:.01s !important}}
 </style>
 </head>
@@ -267,6 +336,7 @@ button{min-height:44px;touch-action:manipulation;-webkit-tap-highlight-color:tra
     <div class="panel" style="text-align:center">
       <h2>מי משחק היום? 👋</h2>
       <input class="txt" id="nameIn" maxlength="14" placeholder="הקלד את השם שלך">
+      <div class="lookPreview" id="lookPreview"></div>
       <h3>בחר דמות</h3>
       <div class="avatars" id="avatars"></div>
       <button class="btn big green" id="profileGo">יאללה! 🚀</button>
@@ -276,12 +346,15 @@ button{min-height:44px;touch-action:manipulation;-webkit-tap-highlight-color:tra
   <!-- ===== תפריט ראשי / Hub ===== -->
   <section class="screen" id="hubScreen">
     <div class="companion"><div class="owl owlSkin">🦉</div><div class="bubble" id="hubMsg"></div></div>
+    <div id="giftBanner" class="giftBanner"></div>
+    <div id="hubExtras"></div>
     <div class="hub">
       <button class="tile t1" data-go="map"><span class="em">🗺️</span>הרפתקה<small>עולמות ובוסים</small></button>
       <button class="tile t2" data-go="arena"><span class="em">⚔️</span>זירת קרב<small>כולם נגד כולם</small></button>
+      <button class="tile t9" data-go="duel"><span class="em">🤝</span>1 על 1<small>נגד בוט או חבר</small></button>
       <button class="tile t3" data-go="lightning"><span class="em">⚡</span>סבב בזק<small>60 שניות</small></button>
       <button class="tile t4" data-go="daily"><span class="em">📅</span>אתגר יומי<small id="dailyTag">פרס 50 🪙</small></button>
-      <button class="tile t5" data-go="shop"><span class="em">🛍️</span>חנות<small>סקינים וכוחות</small></button>
+      <button class="tile t5" data-go="shop"><span class="em">🛍️</span>חנות<small id="shopTag">סקינים וכוחות</small></button>
       <button class="tile t6" data-go="badges"><span class="em">🏅</span>הישגים</button>
       <button class="tile t7" data-go="stats"><span class="em">📊</span>התקדמות</button>
       <button class="tile t8" data-go="settings"><span class="em">⚙️</span>הגדרות</button>
@@ -330,11 +403,17 @@ button{min-height:44px;touch-action:manipulation;-webkit-tap-highlight-color:tra
     </div>
   </section>
 
+  <!-- ===== 1 על 1 / Duel ===== -->
+  <section class="screen" id="duelScreen"></section>
+
+  <!-- ===== אוסף קלפים / Cards ===== -->
+  <section class="screen" id="albumScreen"><h2>🃏 אוסף הקלפים</h2><div class="panel" id="albumBox"></div></section>
+
   <!-- ===== חנות / Shop ===== -->
   <section class="screen" id="shopScreen">
     <h2>🛍️ החנות של ינשופי</h2>
-    <div class="panel"><h3>סקינים למלווה</h3><div class="grid" id="skinGrid"></div>
-    <h3>כוחות-על</h3><div class="grid" id="pupGrid"></div></div>
+    <div class="shopTabs" id="shopTabs"></div>
+    <div class="panel" id="shopPanel"></div>
   </section>
 
   <section class="screen" id="badgesScreen"><h2>🏅 גלריית הישגים</h2><div class="panel"><div class="grid" id="badgeGrid"></div></div></section>
@@ -348,6 +427,7 @@ button{min-height:44px;touch-action:manipulation;-webkit-tap-highlight-color:tra
 <div id="flash"></div>
 <div class="toast" id="toast"></div>
 <div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
+<div id="revealLayer"></div>
 
 <script>
 "use strict";
@@ -362,11 +442,16 @@ const WORLDS=[
 ];
 const AVATARS=["🧒","👧","👦","🧑‍🚀","🦸","🧙","🥷","👸","🤴","🐯","🐸","🐵"];
 const SKINS=[{em:"🦉",name:"ינשופי",price:0},{em:"🤖",name:"רובוטי",price:60},{em:"🐱",name:"חתולי",price:80},{em:"🐼",name:"פנדי",price:100},
-  {em:"🦊",name:"שועלי",price:120},{em:"🦄",name:"חד-קרני",price:180},{em:"🐉",name:"דרקוני",price:250},{em:"👽",name:"חייזרי",price:300}];
+  {em:"🦊",name:"שועלי",price:120},{em:"🦄",name:"חד-קרני",price:180},{em:"🐉",name:"דרקוני",price:250},{em:"👽",name:"חייזרי",price:300},
+  {em:"🐧",name:"פינגווי",price:75},{em:"🐝",name:"דבורה",price:110},{em:"🦁",name:"ארי",price:140},
+  {em:"🦋",name:"פרפרי",price:160},{em:"🐙",name:"תמנוני",price:210},{em:"🌈",name:"קשתי",price:260}];
 const PUPS={hint:{em:"💡",name:"רמז",desc:"מוחק 2 תשובות שגויות / מראה צעד ראשון",price:20},
   freeze:{em:"❄️",name:"הקפאה",desc:"עוצר את השעון (ואת הבוטים) ל-6 שניות",price:30},
   shield:{em:"🛡️",name:"מגן",desc:"חוסם את הפגיעה הבאה",price:30},
-  double:{em:"✖️2",name:"כפול",desc:"התשובה הנכונה הבאה שווה פי 2",price:25}};
+  double:{em:"✖️2",name:"כפול",desc:"התשובה הנכונה הבאה שווה פי 2",price:25},
+  time:{em:"⏱️",name:"+5 שניות",desc:"מוסיף 5 שניות לשעון הפעיל",price:22},
+  heal:{em:"💚",name:"ריפוי",desc:"מחזיר 22 נקודות חיים בקרב",price:28},
+  steal:{em:"🎯",name:"גניבת נקודות",desc:"גונב נקודות מהיריב ופוגע קצת",price:32}};
 const BOTS=[ // בוטים עם אישיות / bots with personalities
   {name:"רובו-מקס",em:"🤖",skill:.85,speed:.9,style:"leader",quip:["חישוב הושלם!","בייפ בופ, פגיעה!"]},
   {name:"זריזה",em:"🐇",skill:.65,speed:1.35,style:"random",quip:["מהר מהר!","הופ!"]},
@@ -392,7 +477,13 @@ const ACH=[ // הישגים / achievements
   {id:"daily",em:"📅",name:"מתמיד",d:"השלם אתגר יומי",t:s=>s.dailyCount>=1},
   {id:"rich",em:"💰",name:"עשיר",d:"צבור 300 מטבעות",t:s=>s.coins>=300},
   {id:"skin",em:"🎨",name:"אופנאי",d:"קנה סקין",t:s=>s.skins.length>=2},
-  {id:"lvl4",em:"🧠",name:"מוח-על",d:"הגע לרמה 4 בפעולה כלשהי",t:s=>Object.values(s.skill).some(k=>k.level>=4)}
+  {id:"lvl4",em:"🧠",name:"מוח-על",d:"הגע לרמה 4 בפעולה כלשהי",t:s=>Object.values(s.skill).some(k=>k.level>=4)},
+  {id:"duel1",em:"🤝",name:"יריב",d:"השתתף בדו-קרב 1 על 1",t:s=>s.duelGames>=1},
+  {id:"duelW",em:"🥇",name:"מנצח הדו-קרב",d:"נצח בדו-קרב 1 על 1",t:s=>s.duelWins>=1},
+  {id:"pet1",em:"🐣",name:"הביצה בקעה",d:"חיית המחמד בקעה",t:s=>s.pet&&s.pet.stage>=1},
+  {id:"cards3",em:"🃏",name:"אספן",d:"אסוף 3 קלפים",t:s=>s.cards&&s.cards.length>=3},
+  {id:"fever8",em:"☄️",name:"קדחת רצף",d:"הגע לרצף של 8",t:s=>s.bestStreak>=8},
+  {id:"starling",em:"🌟",name:"כוכבן",d:"השג את הדמות המיוחדת",t:s=>s.owned&&s.owned.avatars.includes("starling")}
 ];
 const OPNAME={"+":"חיבור","-":"חיסור","×":"כפל"};
 
@@ -401,8 +492,13 @@ const OPNAME={"+":"חיבור","-":"חיסור","×":"כפל"};
    ========================================================= */
 const DEFAULT={name:"",avatar:"🧒",coins:30,points:0,streak:0,bestStreak:0,totalCorrect:0,totalWrong:0,fastAnswers:0,
   unlocked:1,worldStars:[0,0,0,0],bossWon:[false,false,false,false],bosses:0,arenaGames:0,arenaWins:0,lightningBest:0,
-  dailyDate:"",dailyCount:0,badges:[],skin:"🦉",skins:["🦉"],pups:{hint:2,freeze:1,shield:1,double:1},
+  duelGames:0,duelWins:0,freeWheel:"",freeBox:"",cards:[],seasonClaim:"",
+  dailyDate:"",dailyCount:0,badges:[],skin:"🦉",skins:["🦉"],pups:{hint:2,freeze:1,shield:1,double:1,time:1,heal:1,steal:0},
   settings:{sound:true,music:false,timer:"normal",showAI:true},
+  pet:{stage:0},
+  quests:{week:"",solve:0,streakHit:false,duelOrArena:false,claimed:[false,false,false]},
+  equipped:{frame:"none",arena:"classic",confetti:"classic",attack:"spark",title:"",outfit:"none",hat:"none",color:"none",accessory:"none"},
+  owned:{frames:["none"],arenas:["classic"],confetti:["classic"],attacks:["spark"],titles:[""],outfits:["none"],hats:["none"],colors:["none"],accessories:["none"],avatars:[]},
   skill:{"+":{level:1,acc:[],times:[],n:0,ok:0},"-":{level:1,acc:[],times:[],n:0,ok:0},"×":{level:1,acc:[],times:[],n:0,ok:0}}};
 let S;
 function load(){
@@ -410,6 +506,20 @@ function load(){
   S=Object.assign(structuredClone(DEFAULT),d);
   S.settings=Object.assign(structuredClone(DEFAULT.settings),d.settings||{});
   S.pups=Object.assign(structuredClone(DEFAULT.pups),d.pups||{});
+  S.skill=structuredClone(DEFAULT.skill);
+  for(const op of ["+","-","×"]) S.skill[op]=Object.assign(structuredClone(DEFAULT.skill[op]),(d.skill&&d.skill[op])||{});
+  S.equipped=Object.assign(structuredClone(DEFAULT.equipped),d.equipped||{});
+  S.owned=structuredClone(DEFAULT.owned);
+  const ow=d.owned||{};
+  for(const k of Object.keys(DEFAULT.owned)) S.owned[k]=Array.from(new Set([...DEFAULT.owned[k],...(Array.isArray(ow[k])?ow[k]:[])]));
+  S.pet=Object.assign({stage:0},d.pet||{});
+  S.quests=Object.assign(structuredClone(DEFAULT.quests),d.quests||{});
+  if(!Array.isArray(S.quests.claimed)||S.quests.claimed.length!==3) S.quests.claimed=[false,false,false];
+  if(!Array.isArray(S.cards)) S.cards=Array.isArray(d.cards)?d.cards:[];
+  if(typeof S.freeWheel!=="string") S.freeWheel="";
+  if(typeof S.freeBox!=="string") S.freeBox="";
+  ensureWeek();
+  sanitizeEquip();
 }
 function save(){try{localStorage.setItem("mathAdv2",JSON.stringify(S));}catch(e){}}
 const timeMul=()=>({easy:1.5,normal:1,hard:.7})[S.settings.timer]||1; // מכפיל זמן / timer multiplier
@@ -531,7 +641,9 @@ async function getExplanation(q,given){const t=await llmAsk(`הילד ענה ${g
    ========================================================= */
 const $=id=>document.getElementById(id);
 function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active",s.id===id));
-  $("hdr").classList.toggle("on",!["startScreen","profileScreen"].includes(id));window.scrollTo(0,0);}
+  $("hdr").classList.toggle("on",!["startScreen","profileScreen"].includes(id));
+  if(id!=="hubScreen"&&giftInt){clearInterval(giftInt);giftInt=null;}
+  window.scrollTo(0,0);}
 /* דמות SVG של ינשופי / SVG owl character */
 const OWL_SVG=`<svg viewBox="0 0 100 100" aria-label="ינשופי"><defs><linearGradient id="ob" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9b6bff"/><stop offset="1" stop-color="#5b2fd6"/></linearGradient></defs>
 <ellipse cx="50" cy="94" rx="26" ry="4" fill="#0002"/><path d="M22 30 L30 8 L40 24 Z M78 30 L70 8 L60 24 Z" fill="#5b2fd6"/>
@@ -554,10 +666,13 @@ function quake(el){el=el||document.querySelector("main");el.classList.remove("qu
 const hpCls=h=>h<30?"low":h<60?"mid":"";
 function hud(){$("sCoins").textContent="🪙 "+S.coins;$("sPts").textContent="⭐ "+S.points;$("sStreak").textContent="🔥 "+S.streak;
   $("sStars").textContent="🌟 "+S.worldStars.reduce((a,b)=>a+b,0);$("sndBtn").textContent=S.settings.sound?"🔊":"🔇";
-  $("musBtn").style.opacity=S.settings.music?1:.4;$("hAv").textContent=S.avatar;$("hName").textContent=S.name;
-  document.querySelectorAll(".owlSkin").forEach(paintOwl);}
+  $("musBtn").style.opacity=S.settings.music?1:.4;$("hAv").innerHTML=heroHTML();
+  $("hName").innerHTML=esc(S.name)+(S.equipped&&S.equipped.title?` <small class="titleTag">${esc(titleName())}</small>`:"");
+  document.querySelectorAll(".owlSkin").forEach(paintOwl);syncFever();}
 function toast(t,ms=2300){const e=$("toast");e.innerHTML=t;e.style.display="block";clearTimeout(e._t);e._t=setTimeout(()=>e.style.display="none",ms);}
-function confetti(n=30){for(let i=0;i<n;i++){const c=document.createElement("div");c.className="confetti";c.textContent=AI.pick(["🎉","⭐","🎈","✨","🌟","🪙"]);
+function confetti(n=30){const sets={classic:["🎉","⭐","🎈","✨","🌟","🪙"],stars:["⭐","🌟","✨","💫"],hearts:["❤️","💖","💗","💕"],balloons:["🎈","🎉","🎊"],leaves:["🍂","🍁","🍃","🟠"],fireworks:["🎆","🎇","✨","💥"]};
+  const set=sets[(S&&S.equipped&&S.equipped.confetti)||"classic"]||sets.classic;
+  for(let i=0;i<n;i++){const c=document.createElement("div");c.className="confetti";c.textContent=AI.pick(set);
   c.style.left=Math.random()*100+"vw";c.style.animationDelay=Math.random()*.6+"s";document.body.appendChild(c);setTimeout(()=>c.remove(),2600);}}
 function modal(html,buttons){$("modal").innerHTML=html+`<div class="row" style="margin-top:16px">${buttons.map((b,i)=>`<button class="btn ${b.cls||""}" data-i="${i}">${b.t}</button>`).join("")}</div>`;
   $("overlay").classList.add("on");$("modal").querySelectorAll("button").forEach(el=>el.onclick=()=>{$("overlay").classList.remove("on");buttons[+el.dataset.i].f&&buttons[+el.dataset.i].f();});}
@@ -577,15 +692,20 @@ const today=()=>new Date().toISOString().slice(0,10);
 /* =========================================================
    7. ניווט / Navigation (start → profile → hub)
    ========================================================= */
-function goHub(){show("hubScreen");const h=new Date().getHours();
-  $("hubMsg").innerHTML=`${h<12?"בוקר טוב":h<18?"צהריים טובים":"ערב טוב"}, <b>${esc(S.name)}</b>! ${S.totalCorrect?`כבר פתרת ${S.totalCorrect} תרגילים. `:""}מה נעשה היום? ${AI.pick(["אולי זירת קרב? ⚔️","האתגר היומי מחכה 📅","בוא נמשיך בהרפתקה 🗺️"])}`;
-  $("dailyTag").textContent=S.dailyDate===today()?"✅ הושלם היום":"פרס 50 🪙";hud();}
-function goto(where){sfx("click");stopTimers();({map:renderMap,arena:arenaIntro,lightning:startLightning,daily:startDaily,shop:renderShop,badges:renderBadges,stats:renderStats,settings:renderSettings}[where])();}
+function goHub(){show("hubScreen");ensureWeek();const h=new Date().getHours();
+  $("hubMsg").innerHTML=`${h<12?"בוקר טוב":h<18?"צהריים טובים":"ערב טוב"}, <b>${esc(S.name)}</b>! ${S.totalCorrect?`כבר פתרת ${S.totalCorrect} תרגילים. `:""}מה נעשה היום? ${AI.pick(["אולי 1 על 1? 🤝","האתגר היומי מחכה 📅","בוא נמשיך בהרפתקה 🗺️","יש מתנות בחנות 🎁"])}`;
+  $("dailyTag").textContent=S.dailyDate===today()?"✅ הושלם היום":"פרס 50 🪙";
+  paintGifts();renderHubExtras();hud();
+  clearInterval(giftInt);giftInt=setInterval(()=>{if(!$("hubScreen").classList.contains("active")){clearInterval(giftInt);giftInt=null;return;}paintGifts();const left=$("giftLeft");if(left)left.textContent=fmtLeft(msToMidnight());},1000);}
+function goto(where){sfx("click");stopTimers();({map:renderMap,arena:arenaIntro,duel:duelIntro,lightning:startLightning,daily:startDaily,shop:()=>renderShop("skins"),badges:renderBadges,stats:renderStats,settings:renderSettings,album:renderAlbum}[where])();}
 $("startBtn").onclick=()=>{sfx("click");ac();if(S.settings.music)music(true);S.name?goHub():showProfile();};
 $("startSettings").onclick=()=>{ac();renderSettings();};
-function showProfile(){show("profileScreen");$("nameIn").value=S.name;
-  $("avatars").innerHTML=AVATARS.map(a=>`<button class="${a===S.avatar?"sel":""}">${a}</button>`).join("");
-  $("avatars").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.avatar=b.textContent;sfx("click");$("avatars").querySelectorAll("button").forEach(x=>x.classList.toggle("sel",x===b));});}
+function showProfile(){show("profileScreen");$("nameIn").value=S.name;$("lookPreview").innerHTML=heroHTML();
+  const opts=[...AVATARS.map(a=>({id:a,em:a,ok:true})),{id:"starling",em:"🌟",ok:S.owned.avatars.includes("starling")}];
+  $("avatars").innerHTML=opts.map(a=>`<button data-av="${a.id}" class="${S.avatar===a.id?"sel":""} ${a.ok?"":"locked"}">${a.em}${a.id==="starling"?"<small>כוכבן</small>":""}</button>`).join("");
+  $("avatars").querySelectorAll("button").forEach(b=>b.onclick=()=>{
+    if(b.dataset.av==="starling"&&!S.owned.avatars.includes("starling")){toast("כוכבן מחכה בחנות ב-50🪙");sfx("bad");return;}
+    S.avatar=b.dataset.av;sfx("click");save();showProfile();});}
 $("profileGo").onclick=()=>{const n=$("nameIn").value.trim();if(!n){$("nameIn").classList.add("shake");setTimeout(()=>$("nameIn").classList.remove("shake"),400);$("nameIn").focus();return;}
   S.name=n;save();goHub();};
 document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>goto(b.dataset.go));
@@ -597,8 +717,9 @@ $("musBtn").onclick=()=>{S.settings.music=!S.settings.music;music(S.settings.mus
    8. מנוע שאלות משותף / Shared question runner
    מצבים: level / boss / lightning / daily
    ========================================================= */
-let G=null,tInt=null;
-function stopTimers(){clearInterval(tInt);tInt=null;if(A){clearInterval(A.int);A.timers.forEach(clearTimeout);A=null;}}
+let G=null,tInt=null,giftInt=null;
+function stopTimers(){clearInterval(tInt);tInt=null;if(A){clearInterval(A.int);A.timers.forEach(clearTimeout);A=null;}
+  if(D){clearInterval(D.int);(D.timers||[]).forEach(clearTimeout);D=null;}}
 function renderMap(){show("mapScreen");
   $("map").innerHTML=WORLDS.map((w,i)=>{const L=i>=S.unlocked,st=S.worldStars[i];
     return `<div class="world w${i} ${L?"locked":""}"><span class="em">${L?"🔒":w.em}</span><b>${w.name}</b><br>${"⭐".repeat(st)}${"☆".repeat(3-st)} ${S.bossWon[i]?"· 👑":""}
@@ -616,7 +737,7 @@ function startMode(mode,world=0){
   if(mode==="daily"){let seed=+today().replace(/-/g,"");G.rng=()=>((seed=(seed*16807)%2147483647)/2147483647);}
   show("playScreen");$("bossRow").style.display=mode==="boss"?"flex":"none";
   $("timerBox").style.display=mode==="level"||mode==="daily"?"none":"block";
-  if(mode==="boss"){$("bossEm").textContent=W.boss.em;$("bossBig").classList.add("boss-glow");$("bossNm").textContent=W.boss.name;$("meEm").textContent=S.avatar;$("meNm").textContent=S.name;bossBars();}
+  if(mode==="boss"){$("bossEm").textContent=W.boss.em;$("bossBig").classList.add("boss-glow");$("bossNm").textContent=W.boss.name;$("meEm").innerHTML=heroHTML();$("meNm").innerHTML=esc(S.name)+(S.equipped.title?` <small class="titleTag">${esc(titleName())}</small>`:"");bossBars();}
   $("owlMsg").innerHTML={level:`ברוך הבא ל<b>${W.name}</b>! 8 אתגרים מחכים. יאללה! 🚀`,boss:`זהירות! <b>${W.boss.name}</b> ${W.boss.em} כאן! ענה נכון ומהר כדי לפגוע בו. טעות או איחור — הוא תוקף!`,
     lightning:"⚡ סבב בזק! 60 שניות — כמה שיותר תשובות נכונות. מוכן?",daily:"📅 האתגר היומי: 10 שאלות מעורבות, אותן שאלות לכל השחקנים היום!"}[mode];
   if(mode==="lightning"){tInt=setInterval(()=>{if(G.frozen>0){G.frozen-=.1;return;}G.timeLeft-=.1;$("timerBar").style.width=(G.timeLeft/60*100)+"%";$("modeInfo").textContent=`⏱️ ${Math.ceil(G.timeLeft)} · ${G.score} נק'`;if(G.timeLeft<=0)endMode();},100);}
@@ -624,7 +745,7 @@ function startMode(mode,world=0){
 }
 function bossBars(){$("bossHp").parentNode.className="hp "+hpCls(G.bossHp/G.bossMax*100);$("meHp").parentNode.className="hp "+hpCls(G.hp);$("bossHp").style.width=(G.bossHp/G.bossMax*100)+"%";$("meHp").style.width=(G.hp/G.hpMax*100)+"%";}
 function renderPups(box,onUse){box.innerHTML=Object.entries(PUPS).map(([k,p])=>`<button data-p="${k}" title="${p.desc}" ${S.pups[k]?"":"disabled"}>${p.em} ${p.name}<b>${S.pups[k]}</b></button>`).join("");
-  box.querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.p;if(!S.pups[k]||(!G&&!A))return; // אין שימוש כשאין משחק פעיל / only during play
+  box.querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.p;if(!S.pups[k]||(!G&&!A&&!D))return;
     S.pups[k]--;save();sfx("coin");onUse(k);renderPups(box,onUse);});}
 
 async function nextQ(){
@@ -663,6 +784,16 @@ function usePup(k){if(!G)return;
   if(k==="freeze"){G.frozen=6;toast("❄️ הזמן קפוא ל-6 שניות!");}
   if(k==="shield"){G.shield=true;$("card").classList.add("shieldOn");toast("🛡️ מגן פעיל!");}
   if(k==="double"){G.double=true;toast("✖️2 התשובה הנכונה הבאה כפולה!");}
+  if(k==="time"){
+    if(G.mode==="lightning"){G.timeLeft=Math.min(90,G.timeLeft+5);toast("⏱️ +5 שניות!");}
+    else if(G.mode==="boss"){G.qTime+=5;G.qMax+=5;toast("⏱️ +5 שניות!");}
+    else{S.pups.time++;save();toast("אין שעון עכשיו — הכוח הוחזר");}
+  }
+  if(k==="heal"){
+    if(G.mode==="boss"){G.hp=Math.min(G.hpMax,G.hp+22);bossBars();toast("💚 +22 חיים!");}
+    else{S.points+=8;hud();toast("💚 כוח מרפא! +8⭐");}
+  }
+  if(k==="steal"){S.points+=8;hud();toast("🎯 אספת שלל! +8⭐");}
 }
 async function answer(v,btn){
   if(!G||G.answered)return;const q=G.q,secs=(performance.now()-G.start)/1000;
@@ -672,14 +803,19 @@ async function answer(v,btn){
     const first=G.tries===0;
     if(first){G.correct++;S.streak++;S.totalCorrect++;if(secs<4)S.fastAnswers++;}
     S.bestStreak=Math.max(S.bestStreak,S.streak);
-    let pts=first?10+Math.min(S.streak,10)+(secs<5?5:0):3;const dbl=G.double;if(dbl){pts*=2;G.double=false;}
+    let pts=first?10+Math.min(S.streak,10)+(secs<5?5:0):3;
+    if(first&&S.avatar==="starling")pts+=1;
+    if(first)pts+=feverBonus(S.streak);
+    const dbl=G.double;if(dbl){pts*=2;G.double=false;}
     S.points+=pts;G.score+=first?1:0;if(first&&S.streak%5===0)addCoins(5);
+    if(first)onSolve(true);else syncFever();
+    $("card").classList.toggle("fever",S.streak>=5);
     const ad=G.mode==="daily"&&!first?"":first?AI.update(q.op,true,secs):"";
-    sfx("good");owlHappy();sparks(btn||$("qText"),"#41d38a",12);
+    sfx("good");owlHappy();sparks(btn||$("qText"),"#41d38a",12);if(S.avatar==="starling"&&first)sparks($("qText"),"#ffd23f",8);
     let extra="";
     if(G.mode==="boss"){clearInterval(tInt);const dmg=first?Math.round(14+Math.max(0,8-secs)*1.5)*(dbl?2:1):6;G.bossHp=Math.max(0,G.bossHp-dmg);
       $("bossBig").classList.remove("hit");void $("bossBig").offsetWidth;$("bossBig").classList.add("hit");sfx("hit");sparks($("bossEm"),"#ff8c1a",18);quake($("card"));bossBars();extra=` 💥 פגעת ב-${dmg}!`;}
-    $("owlMsg").innerHTML=`${AI.praise()} +${pts}⭐${S.streak>=3?` · רצף ${S.streak} 🔥`:""}${extra} ${ad}`;
+    $("owlMsg").innerHTML=`${AI.praise()} +${pts}⭐${S.streak>=3?` · רצף ${S.streak} 🔥`:""}${S.streak>=5?" · מצב רצף":""}${S.avatar==="starling"&&first?" ✦":""}${extra} ${ad}`;
     if(S.streak>0&&S.streak%5===0)confetti(18);
     G.n++;save();hud();checkAch();
     if(G.mode==="boss"&&G.bossHp<=0)return setTimeout(endMode,700);
@@ -687,7 +823,7 @@ async function answer(v,btn){
   }else{
     sfx("bad");$("card").classList.remove("shake");void $("card").offsetWidth;$("card").classList.add("shake");
     if(btn){btn.classList.add("wrong");btn.disabled=true;}
-    if(G.tries===0){S.streak=0;S.totalWrong++;const ad=AI.update(q.op,false,secs);$("owlMsg").innerHTML=AI.comfort()+" "+ad;}
+    if(G.tries===0){S.streak=0;S.totalWrong++;syncFever();$("card").classList.remove("fever");const ad=AI.update(q.op,false,secs);$("owlMsg").innerHTML=AI.comfort()+" "+ad;}
     G.tries++;hud();save();
     if(G.mode==="lightning"){G.timeLeft-=2;toast("−2 שניות ⏱️",900);if(!btn){G.answered=true;setTimeout(nextQ,300);}return;}
     if(G.mode==="boss"&&G.tries===1){clearInterval(tInt);$("timerBar").style.width="100%";bossAttack(null);if(!G)return;} // עצירת שעון אחרי טעות – זמן ללמוד / pause timer to learn
@@ -733,7 +869,7 @@ let A=null;
 function arenaIntro(){
   const bots=[...BOTS].sort(()=>Math.random()-.5).slice(0,6);
   modal(`<span class="em">⚔️</span><h2>זירת קרב</h2><p>אתה ועוד 6 בוטים — <b>כולם נגד כולם!</b><br>ענה נכון ומהר כדי לתקוף. לחץ על לוחם כדי לבחור מטרה.<br>האחרון שנשאר — מנצח! 🏆</p>
-    <p style="font-size:2rem">${S.avatar} ${bots.map(b=>b.em).join(" ")}</p>`,[{t:"⚔️ לקרב!",cls:"pink",f:()=>startArena(bots)},{t:"חזרה",f:goHub}]);
+    <p style="font-size:2rem">${faceEmoji()} ${bots.map(b=>b.em).join(" ")}</p>`,[{t:"⚔️ לקרב!",cls:"pink",f:()=>startArena(bots)},{t:"חזרה",f:goHub}]);
 }
 function startArena(bots){
   stopTimers();const lvl=AI.avgLevel();
@@ -759,7 +895,7 @@ function pickTarget(me){ // בחירת מטרה לפי אישיות / target by 
 function arenaLog(t){A.log.unshift(t);$("alog").innerHTML=A.log.slice(0,30).map(x=>`<div>${x}</div>`).join("");}
 function renderFighters(){
   $("fighters").innerHTML=A.f.map(x=>`<div class="fighter ${x.me?"me":""} ${x.hp<=0?"dead":""} ${A.target===x.id?"target":""}" data-id="${x.id}">
-    <span class="tag">${x.hp<=0?"💀":A.target===x.id?"🎯":x.shield?"🛡️":""}</span><div class="em">${x.em}</div><div class="nm">${esc(x.name)}</div>
+    <span class="tag">${x.hp<=0?"💀":A.target===x.id?"🎯":x.shield?"🛡️":""}</span><div class="em">${x.me?heroHTML():x.em}</div><div class="nm">${esc(x.name)}${x.me&&S.equipped.title?` <small class="titleTag">${esc(titleName())}</small>`:""}</div>
     <div class="hp ${hpCls(x.hp)}"><div style="width:${x.hp}%"></div></div><div class="st" id="fs${x.id}">${x.hp>0?x.hp+" ❤️":"הודח"}</div></div>`).join("");
   $("fighters").querySelectorAll(".fighter").forEach(el=>el.onclick=()=>{const id=+el.dataset.id,t=A.f[id];if(t.me||t.hp<=0)return;A.target=id;sfx("click");renderFighters();});
   const tg=A.f[A.target];$("aTarget").innerHTML=tg&&tg.hp>0?`🎯 מטרה: ${tg.em} ${esc(tg.name)}`:"";
@@ -778,7 +914,11 @@ function arenaRound(){
   renderAnswer($("aArea"),q,(v,b)=>arenaAnswer(0,v,b));renderFighters();
   renderPups($("aPups"),k=>{if(!A)return;if(k==="hint"){[...$("aArea").querySelectorAll("button")].filter(b=>+b.dataset.v!==q.ans).slice(0,2).forEach(b=>b.disabled=true);}
     if(k==="freeze"){A.frozen=6;arenaLog("❄️ הקפאת את הבוטים!");toast("❄️ הבוטים קפואים ל-6 שניות!");}
-    if(k==="shield"){me.shield=true;renderFighters();}if(k==="double"){me.double=true;toast("✖️2 ההתקפה הבאה כפולה!");}});
+    if(k==="shield"){me.shield=true;renderFighters();}if(k==="double"){me.double=true;toast("✖️2 ההתקפה הבאה כפולה!");}
+    if(k==="time"){A.tLeft+=5;A.maxT+=5;toast("⏱️ +5 שניות!");}
+    if(k==="heal"){me.hp=Math.min(100,me.hp+22);toast("💚 +22 חיים");renderFighters();}
+    if(k==="steal"){const tId=pickTarget(me);if(tId!=null){const tg=A.f[tId];tg.score=Math.max(0,tg.score-10);me.score+=10;
+      if(tg.shield)tg.shield=false;else tg.hp=Math.max(0,tg.hp-8);arenaLog(`🎯 ${esc(me.name)} גנב נקודות מ${esc(tg.name)}`);renderFighters();}}});
   // תזמון תשובות הבוטים / schedule bot answers
   alive().filter(x=>x.bot).forEach(b=>{
     const diff=q.op==="×"?1.3:1+q.lvl*.08;
@@ -803,7 +943,7 @@ function arenaAnswer(id,v,btn){
   const t=(performance.now()-A.qStart)/1000;A.answered[id]=true;
   if(x.me){$("aArea").querySelectorAll("button").forEach(b=>b.disabled=true);AI.update(A.q.op,v===A.q.ans,t);}
   if(v!==A.q.ans){
-    if(x.me){btn&&btn.classList.add("wrong");sfx("bad");S.streak=0;S.totalWrong++;toast(`אופס! ${A.q.text.replace("?",A.q.ans)}`,1500);$("aCard").classList.remove("shake");void $("aCard").offsetWidth;$("aCard").classList.add("shake");}
+    if(x.me){btn&&btn.classList.add("wrong");sfx("bad");S.streak=0;S.totalWrong++;syncFever();toast(`אופס! ${A.q.text.replace("?",A.q.ans)}`,1500);$("aCard").classList.remove("shake");void $("aCard").offsetWidth;$("aCard").classList.add("shake");}
     floatText(id,"❌","#ff4d6d");arenaLog(`${x.em} ${esc(x.name)} טעה`);return;
   }
   // התקפה! נזק לפי מהירות וסדר / damage by speed & order
@@ -812,11 +952,11 @@ function arenaAnswer(id,v,btn){
   const tId=x.me?(A.target!=null&&A.f[A.target].hp>0?A.target:pickTarget(x)):pickTarget(x);
   if(x.double){dmg*=2;x.double=false;}
   x.score+=10+(order===1?5:0);
-  if(x.me){btn&&btn.classList.add("right");sfx("good");S.streak++;S.totalCorrect++;S.points+=10;if(t<4)S.fastAnswers++;S.bestStreak=Math.max(S.bestStreak,S.streak);}
+  if(x.me){btn&&btn.classList.add("right");sfx("good");S.streak++;S.totalCorrect++;let pts=10+feverBonus(S.streak)+(S.avatar==="starling"?1:0);S.points+=pts;if(t<4)S.fastAnswers++;S.bestStreak=Math.max(S.bestStreak,S.streak);onSolve(true);}
   if(tId==null)return;const tg=A.f[tId];
   if(tg.shield){tg.shield=false;floatText(tId,"🛡️","#3a86ff");arenaLog(`🛡️ ${esc(tg.name)} חסם את ${esc(x.name)}`);renderFighters();return;}
   tg.hp=Math.max(0,tg.hp-dmg);tg.lastHit=id;floatText(tId,"−"+dmg,"#ff4d6d");sfx("hit");
-  const el=document.querySelector(`.fighter[data-id="${tId}"]`);if(el){el.classList.remove("hit");void el.offsetWidth;el.classList.add("hit");sparks(el,x.me?"#ffd23f":"#ff4d6d",x.me?18:9);
+  const el=document.querySelector(`.fighter[data-id="${tId}"]`);if(el){el.classList.remove("hit");void el.offsetWidth;el.classList.add("hit");if(x.me)attackBurst(el);else sparks(el,"#ff4d6d",9);
     const bar=el.querySelector(".hp div");if(bar){bar.style.width=tg.hp+"%";bar.parentNode.className="hp "+hpCls(tg.hp);}const st=el.querySelector(".st");if(st)st.textContent=tg.hp>0?tg.hp+" ❤️":"הודח";}
   const ae=document.querySelector(`.fighter[data-id="${id}"]`);if(ae){ae.classList.remove("attack");void ae.offsetWidth;ae.classList.add("attack");}
   if(tg.me){flash();quake();}
@@ -831,7 +971,7 @@ function arenaEnd(){
   let guard=0;while(alive().length>1&&guard++<200){const al=alive().filter(x=>x.bot);if(al.length<2)break;const a=AI.pick(al);
     if(Math.random()<a.acc){const t=A.f[pickTarget(a)];if(t){t.hp=Math.max(0,t.hp-15);a.score+=10;if(t.hp<=0){a.kills++;a.score+=25;}}}}
   const rank=[...A.f].sort((a,b)=>(b.hp>0)-(a.hp>0)||b.score-a.score);const pos=rank.indexOf(me)+1,win=pos===1&&me.hp>0;
-  const coins=[0,80,50,35,25,15,10,5][pos]||5;if(win)S.arenaWins++;addCoins(coins);save();checkAch();
+  const coins=[0,80,50,35,25,15,10,5][pos]||5;if(win){S.arenaWins++;ensureWeek();S.quests.duelOrArena=true;}addCoins(coins);save();checkAch();
   if(win){confetti(50);sfx("win");}
   const w=rank[0];const res=A;A=null;
   modal(`<span class="em">${win?"🏆":w.em}</span><h2>${win?"ניצחת בזירה!":`${esc(w.name)} ניצח`}</h2>
@@ -843,25 +983,291 @@ function arenaEnd(){
 /* =========================================================
    10. חנות, הישגים, סטטיסטיקה, הגדרות / Shop, achievements, stats, settings
    ========================================================= */
-function renderShop(){show("shopScreen");hud();
-  $("skinGrid").innerHTML=SKINS.map((s,i)=>{const own=S.skins.includes(s.em);
-    return `<div class="item"><b class="em">${s.em}</b>${s.name}<small>${own?"בבעלותך":s.price+" 🪙"}</small>
-    <button class="btn ${own?"green":""}" data-s="${i}" ${S.skin===s.em?"disabled":""}>${S.skin===s.em?"בשימוש":own?"בחר":"קנה"}</button></div>`;}).join("");
-  $("skinGrid").querySelectorAll("button").forEach(b=>b.onclick=()=>{const s=SKINS[+b.dataset.s];
-    if(!S.skins.includes(s.em)){if(S.coins<s.price){toast("אין מספיק מטבעות 🪙 — שחק עוד!");sfx("bad");return;}S.coins-=s.price;S.skins.push(s.em);toast(`🎉 קנית את ${s.name}!`);confetti(15);}
-    S.skin=s.em;sfx("coin");save();checkAch();renderShop();});
-  $("pupGrid").innerHTML=Object.entries(PUPS).map(([k,p])=>`<div class="item"><b class="em">${p.em}</b>${p.name} (יש ${S.pups[k]})<small>${p.desc}</small><button class="btn orange" data-k="${k}">${p.price} 🪙</button></div>`).join("");
-  $("pupGrid").querySelectorAll("button").forEach(b=>b.onclick=()=>{const p=PUPS[b.dataset.k];if(S.coins<p.price){toast("אין מספיק מטבעות 🪙");sfx("bad");return;}
-    S.coins-=p.price;S.pups[b.dataset.k]++;sfx("coin");save();renderShop();});}
+/* =========================================================
+   1 על 1, חנות מורחבת, מתנות, הפתעות
+   ========================================================= */
+let D=null,shopTab="skins",wheelRot=0,wheelBusy=false,p2pick="👧";
+const BOX_PRICE=35,SPIN_PRICE=20;
+const STARLING={id:"starling",em:"🌟",name:"כוכבן",price:50,desc:"דמות מיוחדת: נצנוץ כוכבים ו-+1⭐ על כל תשובה נכונה"};
+const EQMAP={frames:"frame",arenas:"arena",confetti:"confetti",attacks:"attack",titles:"title",outfits:"outfit",hats:"hat",colors:"color",accessories:"accessory"};
+const LOOKS={
+  frames:[{id:"none",em:"⬜",name:"בלי מסגרת",price:0},{id:"bronze",em:"🥉",name:"מסגרת ארד",price:40},{id:"silver",em:"🥈",name:"מסגרת כסף",price:90},{id:"gold",em:"🥇",name:"מסגרת זהב",price:160},{id:"rainbow",em:"🌈",name:"מסגרת קשת",price:240}],
+  arenas:[{id:"classic",em:"🎨",name:"רקע רגיל",price:0},{id:"forest",em:"🌳",name:"יער",price:70},{id:"ocean",em:"🌊",name:"ים",price:90},{id:"volcano",em:"🌋",name:"הר געש",price:130},{id:"candy",em:"🍬",name:"ממתקים",price:150},{id:"autumn",em:"🍂",name:"שלכת",price:80},{id:"space",em:"🌌",name:"חלל",price:220}],
+  confetti:[{id:"classic",em:"🎉",name:"קונפטי רגיל",price:0},{id:"stars",em:"⭐",name:"כוכבים",price:40},{id:"hearts",em:"💖",name:"לבבות",price:50},{id:"balloons",em:"🎈",name:"בלונים",price:70},{id:"leaves",em:"🍂",name:"עלים",price:45},{id:"fireworks",em:"🎆",name:"זיקוקים",price:160}],
+  attacks:[{id:"spark",em:"✨",name:"ניצוץ",price:0},{id:"bolt",em:"⚡",name:"ברק",price:70},{id:"hearts",em:"💖",name:"לבבות",price:60},{id:"stars",em:"⭐",name:"מטר כוכבים",price:80},{id:"leaves",em:"🍂",name:"עלים עפים",price:50},{id:"fire",em:"🔥",name:"אש",price:150}],
+  titles:[{id:"",em:"🚫",name:"בלי תואר",price:0},{id:"plus",em:"➕",name:"אלוף פלוס",price:60},{id:"bolt",em:"⚡",name:"ברק",price:90},{id:"smart",em:"🧠",name:"חכם",price:70},{id:"star",em:"⭐",name:"כוכב",price:120},{id:"champ",em:"🏆",name:"אלוף",price:200},{id:"autumn",em:"🍂",name:"רוח סתיו",price:110}],
+  outfits:[{id:"none",em:"👕",name:"בלי תלבושת",price:0},{id:"cape",em:"🦸",name:"גלימה",price:60},{id:"wizard",em:"🧙",name:"גלימת קוסם",price:120},{id:"astro",em:"🧑‍🚀",name:"חללית",price:150},{id:"royal",em:"🤴",name:"גלימת מלך",price:240}],
+  hats:[{id:"none",em:"🚫",name:"בלי כובע",price:0},{id:"cap",em:"🧢",name:"כובע מצחייה",price:40},{id:"party",em:"🎉",name:"כובע מסיבה",price:70},{id:"wizard",em:"🎩",name:"מגבעת",price:100},{id:"leaf",em:"🍂",name:"כתר עלים",price:80},{id:"crown",em:"👑",name:"כתר",price:200}],
+  colors:[{id:"none",em:"⚪",name:"בלי הילה",price:0},{id:"blue",em:"🔵",name:"הילה כחולה",price:30},{id:"pink",em:"💗",name:"הילה ורודה",price:30},{id:"green",em:"🟢",name:"הילה ירוקה",price:30},{id:"gold",em:"🟡",name:"הילה זהובה",price:110},{id:"rainbow",em:"🌈",name:"הילת קשת",price:210}],
+  accessories:[{id:"none",em:"🚫",name:"בלי אביזר",price:0},{id:"glasses",em:"👓",name:"משקפיים",price:45},{id:"bow",em:"🎀",name:"פפיון",price:40},{id:"scarf",em:"🧣",name:"צעיף",price:55},{id:"medal",em:"🏅",name:"מדליה",price:90},{id:"wand",em:"🪄",name:"שרביט",price:130}]
+};
+const ATTACKS={spark:{color:"#ffd23f",em:"✨"},bolt:{color:"#7ad7ff",em:"⚡"},hearts:{color:"#ff5fa2",em:"💖"},stars:{color:"#ffe66d",em:"⭐"},leaves:{color:"#e07a2f",em:"🍂"},fire:{color:"#ff6b35",em:"🔥"}};
+const PET=[{at:0,em:"🥚",name:"ביצה מסתורית",tip:"פתרו תרגילים כדי לחמם את הביצה."},{at:10,em:"🐣",name:"אפרוח סקרן",tip:"בחיבור מתחילים מהמספר הגדול וסופרים קדימה."},{at:30,em:"🐥",name:"גוזל זריז",tip:"בחיסור בודקים בחיבור: התשובה ועוד מה שהורדנו חוזרים להתחלה."},{at:70,em:"🦉",name:"ינשוף לומד",tip:"כפל הוא חיבור חוזר. 4×3 זה 3+3+3+3."},{at:140,em:"🌠",name:"ינשוף כוכב",tip:"מספר גדול מפרקים לעשרות ואחדות, ואז מחברים."}];
+const QUEST_DEFS=[
+  {em:"✅",name:"12 תשובות נכונות",reward:25,card:true,test:q=>q.solve>=12,bar:q=>Math.min(12,q.solve)+"/12"},
+  {em:"🔥",name:"רצף של 5",reward:20,card:false,test:q=>!!q.streakHit,bar:q=>q.streakHit?"1/1":"0/1"},
+  {em:"⚔️",name:"ניצחון בזירה או ב-1 על 1",reward:30,card:true,test:q=>!!q.duelOrArena,bar:q=>q.duelOrArena?"1/1":"0/1"}
+];
+const CARDS=[
+  {id:"ten",em:"🔟",name:"חברים לעשר",fact:"זוגות עד 10: 1+9, 2+8, 3+7, 4+6, 5+5."},
+  {id:"check",em:"✔️",name:"בדיקת חיסור",fact:"אם 12−5=7, אז 7+5 חייב להיות 12."},
+  {id:"times",em:"✖️",name:"כפל חוזר",fact:"4×3 זה ארבע קבוצות של 3."},
+  {id:"tens",em:"📦",name:"עשרות",fact:"36+20=56, כי מוסיפים שתי עשרות."},
+  {id:"zero",em:"0️⃣",name:"כוח האפס",fact:"מספר ועוד 0 נשאר אותו מספר. מספר כפול 0 הוא 0."},
+  {id:"order",em:"🔁",name:"הסדר לא משנה",fact:"בחיבור ובכפל: 3+8=8+3, ו-2×6=6×2."},
+  {id:"half",em:"✂️",name:"חצי",fact:"חצי מ-10 הוא 5, כי 5+5=10."},
+  {id:"leaf",em:"🍂",name:"עלה הזהב",fact:"על העץ 10 עלים. 4 נשרו. נשארו 6.",season:true}
+];
+const SEASON=(new Date().getMonth()===9)?{id:"autumn",name:"פסטיבל השלכת",em:"🍂"}:null;
+const WHEEL=[
+  {label:"20🪙",kind:"coins",n:20},{label:"כוח",roll:"pup"},{label:"35🪙",kind:"coins",n:35},{label:"נפוץ",roll:"common"},
+  {label:"כוח",roll:"pup"},{label:"בינוני",roll:"uncommon"},{label:"70🪙",kind:"coins",n:70},{label:"נדיר",roll:"rare"}
+];
+
+function localToday(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function msToMidnight(){const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate()+1)-n;}
+function fmtLeft(ms){const s=Math.max(0,Math.ceil(ms/1000));const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;return h+":"+String(m).padStart(2,"0")+":"+String(ss).padStart(2,"0");}
+function weekKey(){const d=new Date();const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=(t.getUTCDay()+6)%7;t.setUTCDate(t.getUTCDate()-day+3);
+  const first=new Date(Date.UTC(t.getUTCFullYear(),0,4));const week=1+Math.round(((t-first)/86400000-3+((first.getUTCDay()+6)%7))/7);return t.getUTCFullYear()+"-W"+String(week).padStart(2,"0");}
+function ensureWeek(){if(!S.quests)S.quests={week:"",solve:0,streakHit:false,duelOrArena:false,claimed:[false,false,false]};const w=weekKey();if(S.quests.week!==w)S.quests={week:w,solve:0,streakHit:false,duelOrArena:false,claimed:[false,false,false]};}
+function petIndex(){let i=0;PET.forEach((p,idx)=>{if(S.totalCorrect>=p.at)i=idx;});return i;}
+function petInfo(){return PET[petIndex()];}
+function syncPet(silent){const i=petIndex();const prev=S.pet.stage||0;S.pet.stage=i;if(!silent&&i>prev){toast("🎉 חיית המחמד התפתחה: "+PET[i].em+" "+PET[i].name);confetti(18);sfx("lvl");}}
+function feverBonus(streak){if(streak>=8)return 8;if(streak>=5)return 4;return 0;}
+function syncFever(){if(!S)return;document.body.classList.toggle("feverOn",(S.streak||0)>=5);}
+function onSolve(correct){ensureWeek();if(correct){S.quests.solve++;if(S.streak>=5)S.quests.streakHit=true;if(S.streak===5)toast("🔥 מצב רצף! תשובות נכונות שוות יותר");if(S.streak===8){toast("☄️ קדחת רצף!");confetti(14);sfx("lvl");}
+  if(S.totalCorrect>0&&S.totalCorrect%8===0&&Math.random()<0.45){const c=randomUnownedCard();if(c){S.cards.push(c.id);toast("🃏 קלף חדש: "+c.em+" "+c.name);}}syncPet(false);}syncFever();}
+function randomUnownedCard(){const pool=CARDS.filter(c=>!S.cards.includes(c.id)&&(!c.season||SEASON));return pool.length?AI.pick(pool):null;}
+function claimQuest(i){ensureWeek();const q=QUEST_DEFS[i];if(!q||S.quests.claimed[i]||!q.test(S.quests))return;S.quests.claimed[i]=true;addCoins(q.reward);let extra="";if(q.card){const c=randomUnownedCard();if(c){S.cards.push(c.id);extra=" + קלף "+c.em;}}save();checkAch();toast("משימה הושלמה! +"+q.reward+"🪙"+extra);confetti(12);renderHubExtras();}
+function claimSeason(){if(!SEASON||S.seasonClaim===SEASON.id)return;if(S.totalCorrect<12){toast("פתרו 12 תרגילים כדי לפתוח את רוח הסתיו");return;}S.seasonClaim=SEASON.id;if(!S.owned.titles.includes("autumn"))S.owned.titles.push("autumn");if(!S.cards.includes("leaf"))S.cards.push("leaf");save();checkAch();toast("🍂 קיבלתם את התואר רוח סתיו וקלף עלה הזהב!");confetti(22);renderHubExtras();}
+function worn(cat){const id=S.equipped[EQMAP[cat]];const it=(LOOKS[cat]||[]).find(x=>x.id===id);if(!it||it.id==="none"||it.id==="")return "";return it.em;}
+function faceEmoji(av){av=av||S.avatar;return av==="starling"?"🌟":av;}
+function titleName(){const id=S.equipped.title||"";if(!id)return "";const t=LOOKS.titles.find(x=>x.id===id);return t?t.name:"";}
+function heroHTML(av,mine){if(mine===false){const f=av||"👧";return `<span class="hero"><span class="heroFace">${f}</span></span>`;}
+  const a=av||S.avatar;const face=a==="starling"?"🌟":a;const frame=S.equipped.frame||"none",aura=S.equipped.color||"none";
+  return `<span class="hero frame-${frame} aura-${aura}${a==="starling"?" starling":""}"><span class="heroHat">${worn("hats")}</span><span class="heroFace">${face}</span><span class="heroFit">${worn("outfits")}</span><span class="heroAcc">${worn("accessories")}</span></span>`;}
+function sanitizeEquip(){for(const [cat,eq] of Object.entries(EQMAP)){if(!S.owned[cat]||!S.owned[cat].includes(S.equipped[eq]))S.equipped[eq]=DEFAULT.equipped[eq];}
+  if(S.avatar==="starling"&&!S.owned.avatars.includes("starling"))S.avatar="🧒";if(S.avatar!=="starling"&&!AVATARS.includes(S.avatar))S.avatar="🧒";}
+function applyLook(){document.body.dataset.arena=S.equipped.arena||"classic";document.body.dataset.attack=S.equipped.attack||"spark";hud();}
+function attackBurst(el){const a=ATTACKS[S.equipped.attack]||ATTACKS.spark;sparks(el,a.color,16);if(!el)return;const s=document.createElement("div");s.className="float";s.style.color=a.color;s.textContent=a.em;el.appendChild(s);setTimeout(()=>s.remove(),1000);}
+function giftStatus(){const t=localToday();return {wheel:S.freeWheel!==t,box:S.freeBox!==t};}
+function paintGifts(){const g=giftStatus();const n=(g.wheel?1:0)+(g.box?1:0);const tag=$("shopTag");if(tag)tag.textContent=n?("🎁 "+n+" מתנות חינם"):"סקינים וכוחות";
+  const b=$("giftBanner");if(!b)return;const left=fmtLeft(msToMidnight());b.className="giftBanner on"+(n?" hot":"");
+  b.innerHTML=n?`🎁 מתנות היום: ${g.wheel?"גלגל מזל חינם":""}${g.wheel&&g.box?" · ":""}${g.box?"קופסת הפתעה חינם":""}<br><small>המתנות הבאות בעוד ${left}</small>`:`✅ המתנות של היום נוצלו<br><small>גלגל וקופסה חדשים בעוד ${left}</small>`;}
+function renderHubExtras(){ensureWeek();const pet=petInfo();const next=PET[S.pet.stage+1];
+  const quests=QUEST_DEFS.map((q,i)=>{const done=q.test(S.quests),claimed=S.quests.claimed[i];
+    return `<div class="qItem"><span>${q.em} ${q.name} <b>${q.bar(S.quests)}</b></span>${claimed?"<b>✅</b>":done?`<button class="btn green" data-q="${i}">קבל ${q.reward}🪙</button>`:"<span>בתהליך</span>"}</div>`;}).join("");
+  const season=SEASON?`<div class="seasonBanner">${SEASON.em} ${SEASON.name} — פתרו 12 תרגילים וקבלו תואר וקלף מוגבלים. ${S.seasonClaim===SEASON.id?"✅ נאסף":`<button class="btn" id="seasonBtn">לאסוף</button>`}</div>`:"";
+  $("hubExtras").innerHTML=`${season}<div class="extraGrid">
+    <div class="panel petCard"><div class="petRow"><span class="em">${pet.em}</span><div><b>${pet.name}</b><br><small>${pet.tip}</small>${next?`<br><small>השלב הבא בעוד ${Math.max(0,next.at-S.totalCorrect)} תרגילים</small>`:"<br><small>השלב הסופי! 🌟</small>"}</div></div></div>
+    <div class="panel questCard"><b>משימות השבוע</b>${quests}<button class="btn" id="openAlbum" style="margin-top:8px">🃏 האוסף</button></div></div>`;
+  $("hubExtras").querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>claimQuest(+b.dataset.q));
+  const ab=$("openAlbum");if(ab)ab.onclick=()=>{sfx("click");renderAlbum();};
+  const sb=$("seasonBtn");if(sb)sb.onclick=claimSeason;}
+function renderAlbum(){show("albumScreen");const cards=CARDS.filter(c=>!c.season||SEASON||S.cards.includes(c.id));
+  $("albumBox").innerHTML=`<div class="grid">${cards.map(c=>{const own=S.cards.includes(c.id);return `<div class="item ${own?"":"off"}"><b class="em">${own?c.em:"❓"}</b><b>${own?esc(c.name):"???"}</b><small>${own?esc(c.fact):"עוד לא נמצא"}</small></div>`;}).join("")}</div>
+    <p style="text-align:center">נפתחו ${S.cards.length} מתוך ${cards.length}. קלפים מגיעים ממשימות, מקופסה, מגלגל המזל, ולפעמים אחרי תרגול.</p>
+    <div class="row"><button class="btn green" id="albumBack">תפריט</button></div>`;
+  $("albumBack").onclick=goHub;}
+
+function rarityOf(price){if(price<=60)return "common";if(price<=140)return "uncommon";return "rare";}
+function weightOf(price){if(price<=60)return 8;if(price<=140)return 4;return 2;}
+function allGrantables(){const list=[
+  {kind:"coins",n:15,w:18,rarity:"common",em:"🪙",name:"15 מטבעות"},
+  {kind:"coins",n:30,w:12,rarity:"common",em:"🪙",name:"30 מטבעות"},
+  {kind:"coins",n:60,w:5,rarity:"uncommon",em:"🪙",name:"60 מטבעות"},
+  {kind:"coins",n:120,w:2,rarity:"rare",em:"💰",name:"ג'קפוט 120 מטבעות"}];
+  Object.entries(PUPS).forEach(([k,p])=>list.push({kind:"pup",id:k,w:7,rarity:"common",em:p.em,name:p.name}));
+  SKINS.forEach(s=>{if(s.price>0)list.push({kind:"skin",id:s.em,price:s.price,w:weightOf(s.price),rarity:rarityOf(s.price),em:s.em,name:s.name});});
+  Object.entries(LOOKS).forEach(([cat,items])=>items.forEach(it=>{if(it.price>0)list.push({kind:"look",cat,id:it.id,price:it.price,w:weightOf(it.price),rarity:rarityOf(it.price),em:it.em,name:it.name});}));
+  list.push({kind:"avatar",id:"starling",price:50,w:3,rarity:"rare",em:"🌟",name:"כוכבן"});
+  CARDS.forEach(c=>{if(c.season&&!SEASON)return;list.push({kind:"card",id:c.id,w:c.season?1:3,rarity:c.season?"rare":"uncommon",em:c.em,name:"קלף "+c.name});});
+  return list;}
+function weightedPick(list){let t=0;list.forEach(x=>t+=x.w);let r=Math.random()*t;for(const x of list){r-=x.w;if(r<=0)return x;}return list[list.length-1];}
+function grantReward(reward){
+  if(reward.kind==="coins"){addCoins(reward.n);save();return Object.assign({note:"המטבעות נוספו"},reward);}
+  if(reward.kind==="pup"){S.pups[reward.id]=(S.pups[reward.id]||0)+1;save();hud();return Object.assign({note:"הכוח נוסף לתיק"},reward);}
+  if(reward.kind==="skin"){if(S.skins.includes(reward.id)){const c=Math.max(10,Math.round((reward.price||40)*0.4));addCoins(c);save();return Object.assign({note:"כבר יש לך את זה! קיבלת "+c+" מטבעות במקום",duplicate:true},reward);}S.skins.push(reward.id);save();checkAch();return Object.assign({note:"סקין חדש למלווה"},reward);}
+  if(reward.kind==="look"){const cat=reward.cat;if(S.owned[cat].includes(reward.id)){const c=Math.max(10,Math.round((reward.price||40)*0.4));addCoins(c);save();return Object.assign({note:"כבר יש לך את זה! קיבלת "+c+" מטבעות במקום",duplicate:true},reward);}S.owned[cat].push(reward.id);save();return Object.assign({note:"נוסף לאוסף. אפשר להצטייד בחנות"},reward);}
+  if(reward.kind==="avatar"){if(S.owned.avatars.includes("starling")){addCoins(20);save();return Object.assign({note:"כוכבן כבר אצלך! קיבלת 20 מטבעות במקום",duplicate:true},reward);}S.owned.avatars.push("starling");save();checkAch();return Object.assign({note:"דמות חדשה! הצטיידו בה בחנות או בפרופיל"},reward);}
+  if(reward.kind==="card"){if(S.cards.includes(reward.id)){addCoins(12);save();return Object.assign({note:"הקלף כבר באוסף. קיבלת 12 מטבעות",duplicate:true},reward);}S.cards.push(reward.id);save();checkAch();return Object.assign({note:"קלף חדש באוסף"},reward);}
+  addCoins(10);save();return {em:"🪙",name:"10 מטבעות",note:"המטבעות נוספו",rarity:"common"};}
+function showReveal(res){modal(`<div class="reveal"><span class="revealEm">${res.em}</span><h2>${esc(res.name)}</h2><p>${esc(res.note||"")}</p></div>`,[{t:"יש! ✨",cls:"green",f:()=>{if($("shopScreen").classList.contains("active"))renderShop();}}]);
+  if(!res.duplicate)confetti(res.rarity==="rare"?34:16);sfx(res.duplicate?"coin":"win");}
+function openBox(free){if(wheelBusy)return;if(free){if(S.freeBox===localToday()){toast("הקופסה החינמית כבר נפתחה היום");return;}S.freeBox=localToday();}
+  else{if(S.coins<BOX_PRICE){toast("אין מספיק מטבעות 🪙");sfx("bad");return;}S.coins-=BOX_PRICE;}
+  save();hud();paintGifts();const reward=weightedPick(allGrantables());const layer=$("revealLayer");layer.classList.add("on");layer.innerHTML='<div class="mbox">🎁</div>';
+  setTimeout(()=>{layer.classList.remove("on");const res=grantReward(reward);showReveal(res);if($("shopScreen").classList.contains("active"))renderShop();},900);}
+function resolveWheel(seg){if(seg.kind==="coins")return {kind:"coins",n:seg.n,rarity:"common",em:"🪙",name:seg.n+" מטבעות"};
+  if(seg.roll==="pup"){const id=AI.pick(Object.keys(PUPS));const p=PUPS[id];return {kind:"pup",id,rarity:"common",em:p.em,name:p.name};}
+  let pool=allGrantables().filter(x=>x.rarity===seg.roll&&x.kind!=="coins");if(!pool.length)pool=allGrantables().filter(x=>x.rarity===seg.roll);if(!pool.length)pool=allGrantables();return weightedPick(pool);}
+function wheelHTML(){const colors=["#6a3df0","#ff5fa2","#ffb703","#2ec4b6","#3a86ff","#ff8c1a","#7b2ff7","#41d38a"];
+  const g=colors.map((c,i)=>`${c} ${i*45}deg ${(i+1)*45}deg`).join(",");
+  const segs=WHEEL.map((s,i)=>`<span class="wseg" style="transform:rotate(${i*45+22.5}deg)">${s.label}</span>`).join("");
+  return `<div class="wheelWrap"><div class="wheelPtr">▼</div><div class="wheel" id="wheel" style="background:conic-gradient(${g});transform:rotate(${wheelRot}deg)">${segs}</div></div>`;}
+function spinWheel(free){if(wheelBusy)return;if(free){if(S.freeWheel===localToday()){toast("סיבוב חינם כבר נוצל היום");return;}S.freeWheel=localToday();}
+  else{if(S.coins<SPIN_PRICE){toast("אין מספיק מטבעות 🪙");sfx("bad");return;}S.coins-=SPIN_PRICE;}
+  save();hud();paintGifts();wheelBusy=true;const idx=Math.floor(Math.random()*WHEEL.length);const reward=resolveWheel(WHEEL[idx]);
+  const endMod=(360-(idx*45+22.5)+360)%360;let target=wheelRot+360*5;target+=(endMod-((target%360)+360)%360+360)%360;wheelRot=target;
+  const w=$("wheel");if(w)w.style.transform=`rotate(${wheelRot}deg)`;const btn=$("spinBtn");if(btn)btn.disabled=true;
+  let ticks=0;const iv=setInterval(()=>{sfx("tick");if(++ticks>18)clearInterval(iv);},200);
+  setTimeout(()=>{clearInterval(iv);wheelBusy=false;const res=grantReward(reward);showReveal(res);if($("shopScreen").classList.contains("active"))renderShop();},4300);}
+function isOwned(kind,id){if(kind==="skin")return S.skins.includes(id);if(kind==="pup")return false;if(kind==="avatar")return id==="starling"?S.owned.avatars.includes("starling"):true;return (S.owned[kind]||[]).includes(id);}
+function isEquipped(kind,id){if(kind==="skin")return S.skin===id;if(kind==="avatar")return S.avatar===id;return S.equipped[EQMAP[kind]]===id;}
+function priceOf(kind,id){if(kind==="skin")return (SKINS.find(s=>s.em===id)||{}).price||0;if(kind==="pup")return PUPS[id].price;if(kind==="avatar")return id==="starling"?STARLING.price:0;const it=(LOOKS[kind]||[]).find(x=>x.id===id);return it?it.price:0;}
+function giveItem(kind,id){if(kind==="skin"){if(!S.skins.includes(id))S.skins.push(id);}else if(kind==="avatar"){if(id==="starling"&&!S.owned.avatars.includes("starling"))S.owned.avatars.push("starling");}
+  else if(LOOKS[kind]&&!S.owned[kind].includes(id))S.owned[kind].push(id);}
+function buyItem(kind,id){if(kind!=="pup"&&isOwned(kind,id))return equipItem(kind,id);const price=priceOf(kind,id);if(S.coins<price){toast("אין מספיק מטבעות 🪙 — שחקו עוד כדי להרוויח!");sfx("bad");return;}
+  S.coins-=price;if(kind==="pup")S.pups[id]=(S.pups[id]||0)+1;else giveItem(kind,id);sfx("coin");toast(kind==="pup"?"הכוח נוסף לתיק!":"נקנה! אפשר להצטייד ✨");save();checkAch();renderShop();}
+function equipItem(kind,id){if(kind==="pup")return;if(!isOwned(kind,id))return;if(kind==="skin")S.skin=id;else if(kind==="avatar")S.avatar=id;else S.equipped[EQMAP[kind]]=id;sfx("click");save();applyLook();renderShop();}
+function shopCard(o){const owned=o.consumable?false:isOwned(o.kind,o.id),equipped=!o.consumable&&isEquipped(o.kind,o.id);
+  const btn=o.consumable?`<button type="button" class="btn orange" data-act="buy" data-kind="${o.kind}" data-id="${o.id}">${o.price} 🪙</button>`:equipped?`<button type="button" class="btn green" disabled>בשימוש</button>`:owned?`<button type="button" class="btn" data-act="eq" data-kind="${o.kind}" data-id="${o.id}">הצטייד</button>`:`<button type="button" class="btn orange" data-act="buy" data-kind="${o.kind}" data-id="${o.id}">${o.price} 🪙</button>`;
+  const sub=o.consumable?("יש "+o.count):(equipped?"בשימוש":owned?"בבעלותך":(o.price+" 🪙"));
+  return `<div class="item"><b class="em">${o.em}</b><b>${o.name}</b>${o.desc?`<small>${o.desc}</small>`:""}<small>${sub}</small>${btn}</div>`;}
+function shopHTML(){
+  if(shopTab==="skins")return `<h3>סקינים למלווה</h3><div class="grid">${SKINS.map(s=>shopCard({em:s.em,name:s.name,kind:"skin",id:s.em,price:s.price})).join("")}</div>`;
+  if(shopTab==="avatar")return `<div class="lookPreview">${heroHTML()}</div><p style="text-align:center">${esc(S.name)} ${titleName()?`<small class="titleTag">${esc(titleName())}</small>`:""}</p>
+    <h3>דמות מיוחדת</h3><div class="grid">${shopCard({em:STARLING.em,name:STARLING.name,desc:STARLING.desc,kind:"avatar",id:"starling",price:STARLING.price})}</div>
+    <h3>דמויות</h3><div class="grid">${AVATARS.map(a=>shopCard({em:a,name:"דמות",kind:"avatar",id:a,price:0})).join("")}</div>
+    <h3>תלבושות</h3><div class="grid">${LOOKS.outfits.map(it=>shopCard(Object.assign({kind:"outfits"},it))).join("")}</div>
+    <h3>כובעים</h3><div class="grid">${LOOKS.hats.map(it=>shopCard(Object.assign({kind:"hats"},it))).join("")}</div>
+    <h3>הילות</h3><div class="grid">${LOOKS.colors.map(it=>shopCard(Object.assign({kind:"colors"},it))).join("")}</div>
+    <h3>אביזרים</h3><div class="grid">${LOOKS.accessories.map(it=>shopCard(Object.assign({kind:"accessories"},it))).join("")}</div>
+    <h3>מסגרות</h3><div class="grid">${LOOKS.frames.map(it=>shopCard(Object.assign({kind:"frames"},it))).join("")}</div>`;
+  if(shopTab==="arena")return `<h3>רקעים לזירה ול-1 על 1</h3><div class="grid">${LOOKS.arenas.map(it=>shopCard(Object.assign({kind:"arenas"},it))).join("")}</div>
+    <h3>אפקט מכה</h3><div class="grid">${LOOKS.attacks.map(it=>shopCard(Object.assign({kind:"attacks"},it))).join("")}</div>
+    <h3>אפקט ניצחון</h3><div class="grid">${LOOKS.confetti.map(it=>shopCard(Object.assign({kind:"confetti"},it))).join("")}</div>`;
+  if(shopTab==="titles")return `<h3>תארים ליד השם</h3><div class="grid">${LOOKS.titles.map(it=>shopCard(Object.assign({kind:"titles"},it))).join("")}</div>`;
+  if(shopTab==="pups")return `<h3>כוחות-על</h3><div class="grid">${Object.entries(PUPS).map(([k,p])=>shopCard({em:p.em,name:p.name,desc:p.desc,kind:"pup",id:k,price:p.price,consumable:true,count:S.pups[k]||0})).join("")}</div>`;
+  const g=giftStatus();
+  return `<h3>מתנות יומיות</h3><p>גלגל: ${g.wheel?"חינם היום":"נוצל"} · קופסה: ${g.box?"חינם היום":"נוצל"}<br>ההתחדשות הבאה בעוד <b id="giftLeft">${fmtLeft(msToMidnight())}</b></p>
+    <h3>🎁 קופסת הפתעה</h3><p>יכולה להוציא מטבעות, כוחות, סקינים, כובעים, אפקטים, תארים, קלפים וגם את כוכבן. פריט נדיר יוצא פחות. כפילות הופכת למטבעות.</p>
+    <div class="row"><button type="button" class="btn big green" data-act="box" data-free="1" ${g.box?"":"disabled"}>פתיחה חינם</button><button type="button" class="btn big orange" data-act="box" data-free="0">פתיחה ב-${BOX_PRICE} 🪙</button></div>
+    <h3>🎡 גלגל מזל</h3><p>סיבוב חינם אחד ביום, ואחר כך ${SPIN_PRICE} 🪙. הפרוסות כוללות מטבעות, כוחות ופרסים מהחנות.</p>
+    ${wheelHTML()}<div class="row"><button type="button" class="btn big pink" id="spinBtn" data-act="spin" data-free="${g.wheel?"1":"0"}">סיבוב ${g.wheel?"חינם":"ב-"+SPIN_PRICE+" 🪙"}</button></div>`;}
+function shopClick(e){const b=e.target.closest("button");if(!b||!b.dataset.act||b.disabled)return;const {act,kind,id,free}=b.dataset;
+  if(act==="buy")buyItem(kind,id);else if(act==="eq")equipItem(kind,id);else if(act==="box")openBox(free==="1");else if(act==="spin")spinWheel(free==="1");}
+function renderShop(tab){if(typeof tab==="string")shopTab=tab;show("shopScreen");
+  const tabs=[["skins","סקינים"],["avatar","דמות"],["arena","זירה"],["titles","תארים"],["pups","כוחות"],["surprise","הפתעות"]];
+  $("shopTabs").innerHTML=tabs.map(([id,name])=>`<button type="button" class="btn ${shopTab===id?"green":""}" data-tab="${id}">${name}</button>`).join("");
+  $("shopTabs").querySelectorAll("button").forEach(b=>b.onclick=()=>renderShop(b.dataset.tab));
+  $("shopPanel").innerHTML=shopHTML();$("shopPanel").onclick=shopClick;
+  const w=$("wheel");if(w){w.style.transition="none";w.style.transform=`rotate(${wheelRot}deg)`;requestAnimationFrame(()=>{const n=$("wheel");if(n)n.style.transition="";});}
+  hud();}
+
+function duelIntro(){if(D){clearInterval(D.int);(D.timers||[]).forEach(clearTimeout);D=null;}show("duelScreen");
+  $("duelScreen").innerHTML=`<div class="panel" style="text-align:center"><h2>🤝 1 על 1</h2>
+    <p>עונים על אותה שאלה. תשובה נכונה ומהירה מורידה חיים ליריב. מי שמוריד את היריב לאפס מנצח בסיבוב. <b>שני סיבובים</b> מנצחים בדו-קרב. הקושי מתאים את עצמו כמו בזירה, ואפשר להשתמש בכוחות.</p>
+    <div class="row"><button class="btn big pink" id="vsBot">🤖 נגד בוט</button><button class="btn big green" id="vsLocal">👫 שני שחקנים</button></div>
+    <div class="row" style="margin-top:12px"><button class="btn" id="duelHome">תפריט</button></div></div>`;
+  $("vsBot").onclick=()=>{sfx("click");duelPick();};$("vsLocal").onclick=()=>{sfx("click");duelSetup();};$("duelHome").onclick=goHub;}
+function duelPick(){show("duelScreen");
+  $("duelScreen").innerHTML=`<div class="panel" style="text-align:center"><h2>בחרו יריב</h2><div class="row">${BOTS.map((b,i)=>`<button class="btn" data-bot="${i}">${b.em} ${esc(b.name)}</button>`).join("")}<button class="btn orange" id="botRand">🎲 אקראי</button></div><div class="row" style="margin-top:12px"><button class="btn" id="duelBack">חזרה</button></div></div>`;
+  $("duelScreen").querySelectorAll("[data-bot]").forEach(b=>b.onclick=()=>startDuel({mode:"bot",bot:BOTS[+b.dataset.bot]}));
+  $("botRand").onclick=()=>startDuel({mode:"bot",bot:AI.pick(BOTS)});$("duelBack").onclick=duelIntro;}
+function duelSetup(){show("duelScreen");
+  $("duelScreen").innerHTML=`<div class="panel" style="text-align:center"><h2>שני שחקנים על המכשיר</h2>
+    <p>שחקן 1 בימין: ${heroHTML()} <b>${esc(S.name)}</b> · מקשים A S D F</p>
+    <p>שחקן 2 בשמאל · מקשים J K L ;</p>
+    <input class="txt" id="p2name" maxlength="14" value="חבר" placeholder="שם השחקן השני">
+    <div class="avatars" id="p2avs">${AVATARS.map((a,i)=>`<button data-i="${i}" class="${a===p2pick?"sel":""}">${a}</button>`).join("")}</div>
+    <div class="row"><button class="btn big pink" id="p2go">מתחילים!</button><button class="btn" id="duelBack">חזרה</button></div>
+    <p>בטלפון, הצד של שחקן 2 הפוך — יושבים אחד מול השני.</p></div>`;
+  $("p2avs").querySelectorAll("button").forEach(b=>b.onclick=()=>{p2pick=AVATARS[+b.dataset.i];duelSetup();});
+  $("p2go").onclick=()=>{const n=($("p2name").value||"").trim()||"חבר";startDuel({mode:"local",p2name:n,p2avatar:p2pick});};
+  $("duelBack").onclick=duelIntro;}
+function startDuel(opts){if(D){clearInterval(D.int);(D.timers||[]).forEach(clearTimeout);D=null;}
+  const lvl=AI.avgLevel();const pAcc=(AI.accuracy("+")+AI.accuracy("-")+AI.accuracy("×"))/3;const bot=opts.bot;
+  D={mode:opts.mode,round:0,bout:1,wins:[0,0],hp:[48,48],maxHp:48,score:[0,0],
+    names:[S.name||"אני",opts.mode==="bot"?bot.name:(opts.p2name||"חבר")],
+    avs:[S.avatar,opts.mode==="bot"?bot.em:(opts.p2avatar||"👧")],
+    bot:opts.mode==="bot"?{quip:bot.quip,acc:Math.max(.35,Math.min(.95,bot.skill*.7+pAcc*.3)),spd:bot.speed}:null,
+    p2kit:{hint:1,time:1,heal:1},timers:[],int:null,lvl,closing:false,log:[],double:[false,false],shield:[false,false]};
+  S.duelGames++;save();show("duelScreen");duelNext();}
+function duelNext(){if(!D)return;if(D.wins[0]>=2||D.wins[1]>=2)return duelEnd();
+  D.round++;D.answered=[false,false];D.gotIt=[false,false];D.draft=["",""];D.closing=false;D.qStart=performance.now();D.frozen=0;
+  const q=AI.generate(["+","-","×"],{level:Math.round(D.lvl+D.round/4),types:["choice"]});D.q=q;D.choices=AI.choices(q);
+  D.maxT=D.tLeft=Math.max(8,13-D.round*0.25)*timeMul();
+  if(D.bot){const diff=q.op==="×"?1.25:1+q.lvl*0.06;const base=(2.1+Math.random()*4.2)*diff/D.bot.spd*(1.12-Math.min(D.lvl,6)*0.03);D.bot.plannedT=Math.max(1.15,Math.min(6.2,base));D.bot.willOk=Math.random()<D.bot.acc;}
+  paintDuel();clearInterval(D.int);D.int=setInterval(duelTick,100);}
+function paintDuel(){const q=D.q;const keys=[["A","S","D","F"],["J","K","L",";"]];
+  const side=i=>{const mine=i===0;const face=mine?heroHTML():(D.mode==="local"?heroHTML(D.avs[1],false):D.avs[1]);
+    return `<div class="duelSide p${i+1}" id="duelSide${i}"><div class="who"><span class="av">${face}</span> <b>${esc(D.names[i])}</b>${mine&&S.equipped.title?` <small class="titleTag">${esc(titleName())}</small>`:""}</div>
+      <div class="hp ${hpCls(D.hp[i]/D.maxHp*100)}"><div id="dhp${i}" style="width:${D.hp[i]/D.maxHp*100}%"></div></div><div id="dhpt${i}">${D.hp[i]} ❤️</div>
+      <div class="duelQ"><bdo dir="ltr">${q.text}</bdo></div>
+      <div class="choices mini" id="dChoices${i}">${D.choices.map((c,n)=>`<button type="button" data-side="${i}" data-v="${c}">${c}<span class="keyHint">${keys[i][n]}</span></button>`).join("")}</div>
+      <div class="padOut" id="dDraft${i}"></div>
+      <div class="pad">${["1","2","3","4","5","6","7","8","9","⌫","0","✔️"].map(k=>`<button type="button" data-side="${i}" data-pad="${k}">${k}</button>`).join("")}</div>
+      <div class="pups" id="dPups${i}"></div></div>`;};
+  $("duelScreen").innerHTML=`<div style="text-align:center;font-weight:800;margin-bottom:6px">1 על 1 · עד 2 ניצחונות · סיבוב ${D.bout} · אתה ${D.wins[0]} — יריב ${D.wins[1]}${S.streak>=5?" · 🔥 רצף "+S.streak:""}</div>
+    <div class="timer"><div id="duelTimer" style="width:100%"></div></div>
+    <div class="duelSplit">${side(0)}<div class="duelMid"><div id="duelLog"></div><small>ימין A S D F · שמאל J K L ;</small></div>${side(1)}</div>`;
+  $("duelScreen").querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>duelSubmit(+b.dataset.side,+b.dataset.v,b));
+  $("duelScreen").querySelectorAll("[data-pad]").forEach(b=>b.onclick=()=>padPress(+b.dataset.side,b.dataset.pad));
+  paintDuelPups();const log=$("duelLog");if(log)log.innerHTML=D.log.slice(0,4).map(x=>`<div>${esc(x)}</div>`).join("");}
+function paintHP(){if(!D)return;[0,1].forEach(i=>{const bar=$("dhp"+i);if(bar){bar.style.width=(D.hp[i]/D.maxHp*100)+"%";bar.parentNode.className="hp "+hpCls(D.hp[i]/D.maxHp*100);}const t=$("dhpt"+i);if(t)t.textContent=D.hp[i]+" ❤️";});}
+function duelLog(t){if(!D)return;D.log.unshift(t);const el=$("duelLog");if(el)el.innerHTML=D.log.slice(0,4).map(x=>`<div>${esc(x)}</div>`).join("");}
+function paintDuelPups(){if(!$("dPups0"))return;renderPups($("dPups0"),k=>applyDuelPup(0,k));
+  const box=$("dPups1");if(!box)return;if(!D||D.mode!=="local"){box.innerHTML="";return;}
+  box.innerHTML=[["hint","💡"],["time","⏱️"],["heal","💚"]].map(([k,em])=>`<button type="button" data-k="${k}" ${D.p2kit[k]?"":"disabled"}>${em}<b>${D.p2kit[k]||0}</b></button>`).join("");
+  box.querySelectorAll("button").forEach(b=>b.onclick=()=>applyDuelPup(1,b.dataset.k));}
+function applyDuelPup(side,k){if(!D||D.closing)return;if(side===1){if(!D.p2kit[k])return;D.p2kit[k]--;}
+  if(k==="hint"){const wrong=[...$("dChoices"+side).querySelectorAll("button")].filter(b=>+b.dataset.v!==D.q.ans&&!b.disabled);wrong.slice(0,2).forEach(b=>b.disabled=true);toast("💡 רמז!");}
+  if(k==="freeze"){D.frozen=6;toast("❄️ השעון קפוא ל-6 שניות");}
+  if(k==="shield"){D.shield[side]=true;toast("🛡️ מגן פעיל");}
+  if(k==="double"){D.double[side]=true;toast("✖️2 המכה הבאה כפולה");}
+  if(k==="time"){D.tLeft+=5;D.maxT+=5;toast("⏱️ +5 שניות");}
+  if(k==="heal"){D.hp[side]=Math.min(D.maxHp,D.hp[side]+22);paintHP();toast("💚 +22 חיים");}
+  if(k==="steal"){const other=side?0:1;D.score[side]+=8;if(D.shield[other]){D.shield[other]=false;toast("🛡️ הגניבה נחסמה");}else{D.hp[other]=Math.max(0,D.hp[other]-6);toast("🎯 נגנבו נקודות!");paintHP();if(D.hp[other]<=0)finishQuestion("ko");}}
+  paintDuelPups();}
+function padPress(side,k){if(!D||D.closing||D.answered[side])return;if(k==="⌫")D.draft[side]=D.draft[side].slice(0,-1);
+  else if(k==="✔️"){if(D.draft[side]==="")return;duelSubmit(side,+D.draft[side],null);return;}
+  else if(D.draft[side].length<4)D.draft[side]+=k;const el=$("dDraft"+side);if(el)el.textContent=D.draft[side];}
+function duelTick(){if(!D||D.closing)return;if(D.frozen>0)D.frozen-=.1;else D.tLeft-=.1;const bar=$("duelTimer");if(bar)bar.style.width=Math.max(0,D.tLeft/D.maxT*100)+"%";
+  const elapsed=(performance.now()-D.qStart)/1000;
+  if(D.bot&&!D.answered[1]&&D.frozen<=0&&elapsed>=D.bot.plannedT){const v=D.bot.willOk?D.q.ans:D.q.ans+AI.pick([1,-1,2,10]);duelSubmit(1,v,null);}
+  if(D.tLeft<=0)finishQuestion("time");}
+function duelDamage(t,first){return Math.max(8,Math.round(12+Math.max(0,6-t)*1.6+(first?7:0)));}
+function duelSubmit(side,value,btn){if(!D||D.closing||D.answered[side])return;const q=D.q;const t=(performance.now()-D.qStart)/1000;D.answered[side]=true;const ok=value===q.ans;
+  if(side===0){const note=AI.update(q.op,ok,t);if(ok){S.streak++;S.totalCorrect++;if(t<4)S.fastAnswers++;S.bestStreak=Math.max(S.bestStreak,S.streak);let pts=10+Math.min(S.streak,10)+(t<5?5:0)+(S.avatar==="starling"?1:0)+feverBonus(S.streak);S.points+=pts;onSolve(true);if(note)toast(note,1600);}else{S.streak=0;S.totalWrong++;syncFever();}save();hud();checkAch();}
+  if(!ok){if(btn)btn.classList.add("wrong");if(side===0)sfx("bad");duelLog(D.names[side]+" טעה");disableSide(side);if(D.answered[0]&&D.answered[1])finishQuestion("done");return;}
+  const first=!D.gotIt[0]&&!D.gotIt[1];D.gotIt[side]=true;if(btn)btn.classList.add("right");if(side===0)sfx("good");
+  if(D.mode==="local"&&!first){duelLog(D.names[side]+" נכון, אבל מאוחר");disableSide(side);return;}
+  let dmg=duelDamage(t,first);if(D.double[side]){dmg*=2;D.double[side]=false;}
+  const target=side===0?1:0;const el=$("duelSide"+target);
+  if(D.shield[target]){D.shield[target]=false;duelLog("המגן של "+D.names[target]+" חסם");toast("🛡️ המגן חסם!");}
+  else{D.hp[target]=Math.max(0,D.hp[target]-dmg);D.score[side]+=dmg;if(side===0)attackBurst(el);else sparks(el,"#7ad7ff",12);if(el){el.classList.remove("hit");void el.offsetWidth;el.classList.add("hit");}if(target===0){flash();quake();}sfx("hit");duelLog(D.names[side]+" פגע ב-"+dmg);if(side===0&&S.avatar==="starling")sparks(el,"#ffd23f",8);}
+  paintHP();disableSide(side);
+  if(D.mode==="local"||D.hp[0]<=0||D.hp[1]<=0||(D.answered[0]&&D.answered[1]))finishQuestion(D.hp[0]<=0||D.hp[1]<=0?"ko":"done");}
+function disableSide(side){document.querySelectorAll(`#duelScreen [data-side="${side}"]`).forEach(b=>{if(b.tagName==="BUTTON")b.disabled=true;});}
+function finishQuestion(reason){if(!D||D.closing)return;D.closing=true;clearInterval(D.int);D.int=null;
+  if(reason==="time"){if(!D.answered[0])D.hp[0]=Math.max(0,D.hp[0]-6);if(!D.answered[1])D.hp[1]=Math.max(0,D.hp[1]-6);duelLog("נגמר הזמן");paintHP();}
+  document.querySelectorAll("#duelScreen [data-v]").forEach(b=>{b.disabled=true;if(+b.dataset.v===D.q.ans)b.classList.add("right");});
+  const self=D;self.timers.push(setTimeout(()=>settleBout(self),650));}
+function koWinner(){const a=D.hp[0]<=0,b=D.hp[1]<=0;if(a&&b)return D.score[0]>=D.score[1]?0:1;if(b)return 0;if(a)return 1;return -1;}
+function settleBout(self){if(D!==self)return;const w=koWinner();if(w>=0){D.wins[w]++;duelLog(D.names[w]+" ניצח בסיבוב");
+  if(D.wins[0]>=2||D.wins[1]>=2)return duelEnd();D.bout++;D.hp=[D.maxHp,D.maxHp];toast("סיבוב חדש! "+D.wins[0]+"–"+D.wins[1]);
+  self.timers.push(setTimeout(()=>{if(D===self)duelNext();},700));return;}duelNext();}
+function duelEnd(){if(!D)return;clearInterval(D.int);(D.timers||[]).forEach(clearTimeout);const d=D;D=null;ensureWeek();
+  const p1=d.wins[0]>d.wins[1];if(p1){S.duelWins++;S.quests.duelOrArena=true;}
+  const coins=d.mode==="bot"?(p1?45:12):(p1?25:10);addCoins(coins);save();checkAch();if(p1){confetti(36);sfx("win");}
+  modal(`<span class="em">${p1?"🏆":"🤝"}</span><h2>${p1?"ניצחת בדו-קרב!":esc(d.names[1])+" ניצח"}</h2><p>אתה ${d.wins[0]} — יריב ${d.wins[1]}</p><p><b>+${coins} 🪙</b></p><p>${p1?"כל הכבוד, התרגול השתלם!":"עוד סיבוב ואתם שם. טעויות עוזרות ללמוד."}</p>`,
+    [{t:"עוד דו-קרב",cls:"pink",f:duelIntro},{t:"תפריט",f:goHub}]);}
+addEventListener("keydown",e=>{if(!D||D.closing||e.repeat)return;if(e.target&&(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA"))return;
+  const P1=["KeyA","KeyS","KeyD","KeyF"],P2=["KeyJ","KeyK","KeyL","Semicolon"];let side=-1,idx=-1;
+  if(P1.includes(e.code)){side=0;idx=P1.indexOf(e.code);}if(P2.includes(e.code)){side=1;idx=P2.indexOf(e.code);}
+  if(side<0||!D.choices||D.answered[side])return;e.preventDefault();const value=D.choices[idx];
+  const btn=document.querySelector(`#dChoices${side} [data-v="${value}"]`);duelSubmit(side,value,btn);});
+
 function renderBadges(){show("badgesScreen");$("badgeGrid").innerHTML=ACH.map(b=>`<div class="item ${S.badges.includes(b.id)?"":"off"}"><b class="em">${b.em}</b><b>${b.name}</b><small>${b.d}</small></div>`).join("")+
   `<p style="grid-column:1/-1;text-align:center">פתחת ${S.badges.length} מתוך ${ACH.length} הישגים</p>`;}
 function renderStats(){show("statsScreen");const tot=S.totalCorrect+S.totalWrong;
-  $("statsBox").innerHTML=`<h3>${S.avatar} ${esc(S.name)}</h3><table class="st">
+  $("statsBox").innerHTML=`<h3>${heroHTML()} ${esc(S.name)} ${S.equipped.title?`<small class="titleTag">${esc(titleName())}</small>`:""}</h3><table class="st">
    <tr><th>פעולה</th><th>רמה</th><th>דיוק כללי</th><th>תרגילים</th></tr>
    ${["+","-","×"].map(o=>{const k=S.skill[o],p=k.n?Math.round(k.ok/k.n*100):0;return `<tr><td>${OPNAME[o]} ${o}</td><td><div class="bar"><div style="width:${k.level/6*100}%"></div></div>${k.level}/6</td><td>${p}%</td><td>${k.n}</td></tr>`;}).join("")}</table>
    <h3>סיכום</h3><div class="grid">
    ${[["✅",S.totalCorrect,"נכונות"],["🎯",tot?Math.round(S.totalCorrect/tot*100)+"%":"-","דיוק"],["🔥",S.bestStreak,"רצף שיא"],["⭐",S.points,"נקודות"],["🪙",S.coins,"מטבעות"],
-     ["👹",S.bosses,"בוסים"],["⚔️",`${S.arenaWins}/${S.arenaGames}`,"ניצחונות בזירה"],["⚡",S.lightningBest,"שיא בזק"],["📅",S.dailyCount,"אתגרים יומיים"]].map(([e,v,l])=>`<div class="item"><b class="em">${e}</b><b>${v}</b><small>${l}</small></div>`).join("")}</div>
+     ["👹",S.bosses,"בוסים"],["⚔️",`${S.arenaWins}/${S.arenaGames}`,"ניצחונות בזירה"],["🤝",`${S.duelWins}/${S.duelGames}`,"ניצחונות 1 על 1"],["🐣",petInfo().name,"חיית מחמד"],["🃏",S.cards.length,"קלפים"],["⚡",S.lightningBest,"שיא בזק"],["📅",S.dailyCount,"אתגרים יומיים"]].map(([e,v,l])=>`<div class="item"><b class="em">${e}</b><b>${v}</b><small>${l}</small></div>`).join("")}</div>
    <p>${S.skin} <b>טיפ מה-AI:</b> ${(()=>{const w=["+","-","×"].reduce((a,b)=>AI.accuracy(b)<AI.accuracy(a)?b:a);return `כדאי לתרגל עוד ${OPNAME[w]} — שם יש הכי הרבה מקום לשיפור!`;})()}</p>`;}
 function renderSettings(){show("settingsScreen");const st=S.settings;
   const tg=(k,on,off)=>`<button class="btn ${st[k]?"green":""}" data-t="${k}">${st[k]?on:off}</button>`;
@@ -882,13 +1288,13 @@ function renderSettings(){show("settingsScreen");const st=S.settings;
 /* =========================================================
    11. אתחול / Init
    ========================================================= */
-load();hud();
-window.__game={get S(){return S;},get G(){return G;},get A(){return A;}}; // לבדיקות / test hook
+load();syncPet(true);applyLook();
+window.__game={get S(){return S;},get G(){return G;},get A(){return A;},get D(){return D;}}; // לבדיקות / test hook
 </script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {
-    navigator.serviceWorker.register("./sw.js", { scope: "./" });
+    navigator.serviceWorker.register("./sw.js", { scope: "./" }).catch(function(){});
   });
 }
 </script>
