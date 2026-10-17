@@ -109,6 +109,7 @@ input.txt{font-size:1.3rem;padding:10px 14px;border-radius:14px;border:3px solid
 .q{font-size:2.6rem;font-weight:900;margin:12px 0;direction:ltr;color:#3b2a8f}
 .q:not(.word){unicode-bidi:bidi-override;direction:ltr}
 .q.word{font-size:1.35rem;direction:rtl;line-height:1.7;font-weight:600}
+.q.word.enMath{direction:ltr}
 .choices{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:440px;margin:auto}
 .choices button{font-size:1.9rem;font-weight:bold;background:linear-gradient(180deg,#fff3c4,#ffd96b);box-shadow:0 5px 0 #d9a92e;padding:14px;color:#3b2a8f}
 .choices button.right{background:linear-gradient(180deg,#b8f5d0,#41d38a);box-shadow:0 5px 0 #20945a}
@@ -693,7 +694,7 @@ const OPNAME={"+":"חיבור","-":"חיסור","×":"כפל"};
 const DEFAULT={name:"",avatar:"🧒",coins:30,points:0,streak:0,bestStreak:0,totalCorrect:0,totalWrong:0,fastAnswers:0,
   unlocked:1,worldStars:[0,0,0,0],bossWon:[false,false,false,false],bosses:0,arenaGames:0,arenaWins:0,lightningBest:0,
   duelGames:0,duelWins:0,freeWheel:"",freeBox:"",cards:[],seasonClaim:"",
-  dailyDate:"",dailyCount:0,badges:[],enGrade:"34",enStars:{},heGrade:"34",heStars:{},stickers:[],hard:false,skin:"🦉",skins:["🦉"],pups:{hint:2,freeze:1,shield:1,double:1,time:1,heal:1,steal:0},
+  dailyDate:"",dailyCount:0,badges:[],enGrade:"34",enStars:{},heGrade:"34",heStars:{},stickers:[],hard:false,asked:{},skin:"🦉",skins:["🦉"],pups:{hint:2,freeze:1,shield:1,double:1,time:1,heal:1,steal:0},
   settings:{sound:true,music:false,timer:"normal",showAI:true,speak:false},
   pet:{stage:0},
   quests:{week:"",solve:0,streakHit:false,duelOrArena:false,claimed:[false,false,false]},
@@ -732,6 +733,14 @@ function migrateSave(){
   if(typeof GRADES==="undefined"||!GRADES.some(g=>g.id===S.enGrade))S.enGrade="34";
   if(typeof GRADES==="undefined"||!GRADES.some(g=>g.id===S.heGrade))S.heGrade="34";
   if(typeof S.hard!=="boolean")S.hard=false;
+  if(!asObj(S.asked))S.asked={};
+  const asked={};
+  Object.keys(S.asked).forEach(k=>{
+    if(!Array.isArray(S.asked[k]))return;
+    const list=S.asked[k].filter(x=>typeof x==="string"&&x.length<240).slice(-30);
+    if(list.length)asked[k]=list;
+  });
+  S.asked=asked;
   if(typeof S.freeWheel!=="string")S.freeWheel="";
   if(typeof S.freeBox!=="string")S.freeBox="";
   S.settings=Object.assign({sound:true,music:false,timer:"normal",showAI:true,speak:false},asObj(S.settings)||{});
@@ -832,7 +841,7 @@ const AI={
   // בחירת פעולה: חלשה יותר = נבחרת יותר / weaker op picked more
   pickOp(ops){if(ops.length===1)return ops[0];const w=ops.map(o=>1.6-this.accuracy(o));let r=Math.random()*w.reduce((a,b)=>a+b);
     for(let i=0;i<ops.length;i++){r-=w[i];if(r<=0)return ops[i];}return ops[0];},
-  // יצירת שאלה / generate question. opts: {ops, lvlBoost, types, rng}
+  // יצירת שאלה / generate question. opts: {ops, lvlBoost, types, rng, english}
   generate(ops,o={}){
     const R=o.rng||Math.random, ri=(a,b)=>Math.floor(R()*(b-a+1))+a;
     const op=o.rng?ops[ri(0,ops.length-1)]:this.pickOp(ops);
@@ -840,16 +849,85 @@ const AI={
     const [lo,hi]=this.range(op,lvl);let a=ri(lo,hi),b=ri(lo,hi);
     if(op==="-"&&b>a)[a,b]=[b,a];
     const ans=op==="+"?a+b:op==="-"?a-b:a*b;
-    const types=o.types||(lvl<=2?["choice","choice","type","word"]:["choice","type","type","word","missing"]);
+    let types=o.types||(lvl<=2?["choice","choice","type","word"]:["choice","type","type","word","missing"]);
+    if(o.english)types=types.concat(lvl>=5?["numword","numword"]:["numword"]);
     const type=types[ri(0,types.length-1)];
     const q={op,a,b,ans,type,lvl};
+    if(o.english&&type==="numword")return this.numberWord(op,lvl,R,q);
+    if(o.english){
+      q.enText=true;
+      if(type==="word")q.text=this.wordProblem(op,a,b,R,true);
+      else if(type==="missing"){q.text=`What is ${a} ${op} ? = ${ans}?`;q.ans=b;q.missing=true;}
+      else q.text=this.mathPrompt(op,a,b,R);
+      return q;
+    }
     if(type==="word")q.text=this.wordProblem(op,a,b,R);
     else if(type==="missing"){q.text=`${a} ${op} ? = ${ans}`;q.ans=b;q.missing=true;} // מספר חסר / missing number
     else q.text=`${a} ${op} ${b} = ?`;
     return q;
   },
-  wordProblem(op,a,b,R=Math.random){
+  mathPrompt(op,a,b,R){
+    const line=`${a} ${op} ${b}`;
+    return (R()<0.5?`What is ${line}?`:`How much is ${line}?`);
+  },
+  // מילות מספר לפי רמת המיומנות / number words by skill level
+  numberWords(lvl){
+    const all=[
+      [1,"one",1],[2,"two",1],[3,"three",1],[4,"four",1],[5,"five",1],[6,"six",1],[7,"seven",1],[8,"eight",1],[9,"nine",1],[10,"ten",1],
+      [11,"eleven",2],[12,"twelve",2],[13,"thirteen",2],[14,"fourteen",2],[15,"fifteen",2],[16,"sixteen",2],[17,"seventeen",2],[18,"eighteen",2],[19,"nineteen",2],[20,"twenty",2],
+      [30,"thirty",3],[40,"forty",3],[50,"fifty",3],[60,"sixty",3],
+      [70,"seventy",4],[80,"eighty",4],[90,"ninety",4],[100,"one hundred",4],[21,"twenty-one",4],[25,"twenty-five",4],
+      [200,"two hundred",5],[300,"three hundred",5],[400,"four hundred",5],[500,"five hundred",5],[600,"six hundred",5],[700,"seven hundred",5],[800,"eight hundred",5],[900,"nine hundred",5],
+      [1000,"thousand",6,true],[1000,"one thousand",6],[2000,"two thousand",6]
+    ].map(([n,w,lv,bare])=>({n,w,lvl:lv,bare:!!bare}));
+    let pool=all.filter(x=>x.lvl<=lvl&&x.lvl>=Math.max(1,lvl-1));
+    if(pool.length<4)pool=all.filter(x=>x.lvl<=lvl);
+    return pool.length?pool:all.filter(x=>x.lvl===1);
+  },
+  pickDistinct(correct,pool,R){
+    const same=(x,y)=>String(x).toLowerCase()===String(y).toLowerCase();
+    const bag=pool.filter(x=>!same(x,correct));
+    for(let i=bag.length-1;i>0;i--){const j=Math.floor(R()*(i+1));const t=bag[i];bag[i]=bag[j];bag[j]=t;}
+    const out=[correct];
+    for(const x of bag){if(out.length>=4)break;if(!out.some(y=>same(y,x)))out.push(x);}
+    let n=1;
+    while(out.length<4&&n<20){
+      const extra=typeof correct==="number"?correct+(n%2?n:-n)* (n>3?10:1):correct+" "+n;
+      if(!out.some(y=>same(y,extra)))out.push(extra);
+      n++;
+    }
+    for(let i=out.length-1;i>0;i--){const j=Math.floor(R()*(i+1));const t=out[i];out[i]=out[j];out[j]=t;}
+    return out;
+  },
+  numberWord(op,lvl,R,base){
+    const words=this.numberWords(lvl);
+    const spoken=words.filter(w=>!w.bare);
+    const q=Object.assign({},base,{numword:true,enText:true,type:"choice",lvl,op});
+    if(R()<0.5){
+      const item=words[Math.floor(R()*words.length)];
+      q.text=`What is ${item.w}?`;
+      q.ans=item.n;
+      q.choices=this.pickDistinct(item.n,words.map(w=>w.n).concat([item.n*10,Math.max(0,item.n-1)]),R);
+      q.tip=`${item.w} = ${item.n}`;
+    }else{
+      const pool=spoken.length?spoken:words;
+      const item=pool[Math.floor(R()*pool.length)];
+      q.text=`How do you say ${item.n} in English?`;
+      q.ans=item.w;
+      q.choiceDir="ltr";
+      q.choices=this.pickDistinct(item.w,pool.map(w=>w.w),R);
+      q.tip=`${item.n} = ${item.w}`;
+    }
+    return q;
+  },
+  wordProblem(op,a,b,R=Math.random,english){
     const P=arr=>arr[Math.floor(R()*arr.length)];
+    if(english){
+      const n=P(["Noa","Dan","Maya","Tom","Lia","Sam"]),th=P(["apples","stars","balloons","cookies","stickers"]);
+      if(op==="+")return P([`${n} has ${a} ${th} and gets ${b} more. How many ${th} now?`,`There are ${a} ${th}. ${b} more arrive. How many in all?`]);
+      if(op==="-")return P([`${n} had ${a} ${th}. ${b} were given away. How many are left?`,`A basket had ${a} ${th}. ${b} were eaten. How many are left?`]);
+      return P([`${n} has ${a} boxes with ${b} ${th} in each box. How many ${th} in all?`,`${a} children each have ${b} ${th}. How many ${th} altogether?`]);
+    }
     const n=P(["דני","נועה","יוסי","מאיה","איתי","שירה","עומר","תמר"]),[th,e]=P([["תפוחים","🍎"],["כוכבים","⭐"],["בלונים","🎈"],["עוגיות","🍪"],["מדבקות","🏷️"],["גולות","🔮"]]);
     if(op==="+")return P([`ל${n} יש ${a} ${th} ${e}, ואז הגיעו עוד ${b}. כמה ${th} יש עכשיו?`,`בגינה ${a} ${th} ${e} ועוד ${b} הגיעו. כמה בסך הכל?`]);
     if(op==="-")return P([`ל${n} היו ${a} ${th} ${e}. ${b} מהם ניתנו לחבר. כמה נשארו?`,`בסל היו ${a} ${th} ${e}, ${b} נאכלו. כמה נשארו?`]);
@@ -872,6 +950,7 @@ const AI={
   },
   // הסבר צעד-אחר-צעד / step-by-step explanation
   explain(q){
+    if(q&&q.numword)return `${esc(q.tip||"")}<br>התשובה: <b>${esc(String(q.ans))}</b>`;
     const{op,a,b}=q,res=op==="+"?a+b:op==="-"?a-b:a*b;
     if(op==="+"){
       if(b<=10)return `בוא נספור יחד! מתחילים מ-<b>${a}</b> וסופרים עוד <b>${b}</b>:<br><span class="dots">${"🔵".repeat(Math.min(a,15))}${a>15?"…":""} + ${"🟡".repeat(b)}</span><br>${a} → ${Array.from({length:b},(_,i)=>a+i+1).join(" → ")}<br>התשובה: <b>${res}</b> 🎉`;
@@ -1039,7 +1118,7 @@ function speakHe(text){speakText(text,"he-IL");}
 function bindSpeak(root){if(!root)return;root.querySelectorAll("[data-say]").forEach(b=>{b.onclick=e=>{e.stopPropagation();e.preventDefault();speakText(b.getAttribute("data-say"),b.getAttribute("data-lang")||"en-US");};});}
 function enQuestionHtml(q){const say=q.speak?`<button type="button" class="speak" data-say="${escAttr(q.speak)}" title="השמע">🔊</button>`:"";const line=q.showEn?`<div class="enLine" dir="ltr"><bdo dir="ltr">${esc(q.showEn)}</bdo></div>`:"";const em=S.hard?"":(q.em||"");return `<div class="enWrap">${em?`<div class="enBig">${em}</div>`:""}<div class="heQ" dir="rtl">${esc(q.hePrompt||"")}</div>${line}<div class="sayRow">${say}</div></div>`;}
 function heQuestionHtml(q){const say=q.speak?`<button type="button" class="speak" data-say="${escAttr(q.speak)}" data-lang="he-IL" title="השמע">🔊</button>`:"";const em=S.hard?"":(q.em||"");const pass=q.passage?`<div class="hePass" dir="rtl">${esc(q.passage)}</div>`:"";const line=q.showHe?`<div class="heLine" dir="rtl">${esc(q.showHe)}</div>`:"";return `<div class="enWrap">${em?`<div class="enBig">${em}</div>`:""}${pass}<div class="heQ" dir="rtl">${esc(q.hePrompt||"")}</div>${line}<div class="sayRow">${say}</div></div>`;}
-function showQuestion(el,q){if(!el||!q)return;el.className="q"+(q.lang==="en"?" enQ":q.lang==="he"?" heQ":q.type==="word"?" word":"");if(q.type==="word"&&q.lang!=="en"&&q.lang!=="he"){el.textContent=S.hard?stripEmoji(q.text):q.text;return;}el.innerHTML=q.lang==="en"?enQuestionHtml(q):q.lang==="he"?heQuestionHtml(q):`<bdo dir="ltr">${esc(S.hard?stripEmoji(q.text):q.text)}</bdo>`;bindSpeak(el);if(q.lang==="en"&&S.settings&&S.settings.speak&&q.autoSpeak)speakEn(q.autoSpeak);if(q.lang==="he"&&S.settings&&S.settings.speak&&q.autoSpeak)speakHe(q.autoSpeak);}
+function showQuestion(el,q){if(!el||!q)return;const heWord=q.type==="word"&&q.lang!=="en"&&q.lang!=="he"&&!q.enText;const enStory=q.type==="word"&&!!q.enText;el.className="q"+(q.lang==="en"?" enQ":q.lang==="he"?" heQ":heWord?" word":enStory?" word enMath":"");if(heWord){el.textContent=S.hard?stripEmoji(q.text):q.text;return;}if(enStory){el.textContent=q.text;return;}el.innerHTML=q.lang==="en"?enQuestionHtml(q):q.lang==="he"?heQuestionHtml(q):`<bdo dir="ltr">${esc(S.hard?stripEmoji(q.text):q.text)}</bdo>`;bindSpeak(el);if(q.lang==="en"&&S.settings&&S.settings.speak&&q.autoSpeak)speakEn(q.autoSpeak);if(q.lang==="he"&&S.settings&&S.settings.speak&&q.autoSpeak)speakHe(q.autoSpeak);}
 function enExplain(q){const lang=q.lang==="he"?"he-IL":"en-US";const say=q.speak?`<button type="button" class="speak" data-say="${escAttr(q.speak)}" data-lang="${lang}">🔊</button> `:"";const shown=(q.lang==="he"||q.choiceDir==="rtl")?esc(String(q.ans)):`<bdo dir="ltr"><b>${esc(String(q.ans))}</b></bdo>`;return `${esc(q.tip||"נסו שוב אחרי שתשמעו את המילה.")}<br>${say}התשובה: ${shown}`;}
 function allEnWords(){const out=[];Object.keys(EN_WORDS).forEach(k=>EN_WORDS[k].forEach(w=>out.push(w)));return out;}
 function pickChoices(correct,pool,n,fill){n=n||choiceCount();const out=[correct];const bag=(pool||[]).filter(x=>String(x).toLowerCase()!==String(correct).toLowerCase()).sort(()=>Math.random()-.5);for(const x of bag){if(out.length>=n)break;if(!out.some(y=>String(y).toLowerCase()===String(x).toLowerCase()))out.push(x);}const extra=fill||["cat","dog","sun","book","red","milk","yes","no"];for(const x of extra){if(out.length>=n)break;if(!out.some(y=>String(y).toLowerCase()===String(x).toLowerCase()))out.push(x);}return out.sort(()=>Math.random()-.5);}
@@ -1515,15 +1594,52 @@ function renderPups(box,onUse){box.innerHTML=Object.entries(PUPS).map(([k,p])=>`
   box.querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.p;if(!S.pups[k]||(!G&&!A&&!D))return;
     S.pups[k]--;save();sfx("coin");onUse(k);renderPups(box,onUse);});}
 
+function qKey(q){return String(q&&q.text||"").replace(/\s+/g," ").trim().toLowerCase();}
+function adventureQuestion(ops,o){
+  o=o||{};
+  const key=String(o.levelKey??"0");
+  if(!asObj(S.asked))S.asked={};
+  if(!Array.isArray(S.asked[key]))S.asked[key]=[];
+  const bag=S.asked[key];
+  const seen=new Set(bag);
+  const avoid=o.avoid||"";
+  const opts={lvlBoost:o.lvlBoost||0,english:true};
+  let q,k="";
+  for(let i=0;i<40;i++){
+    q=AI.generate(ops,opts);
+    k=qKey(q);
+    if(k&&k!==avoid&&!seen.has(k))break;
+  }
+  let guard=0;
+  while(q&&(k===avoid||seen.has(k))&&guard++<bag.length+2){
+    const idx=bag.findIndex(x=>x!==avoid);
+    if(idx<0)break;
+    seen.delete(bag[idx]);
+    bag.splice(idx,1);
+    q=AI.generate(ops,opts);
+    k=qKey(q);
+  }
+  if(k){
+    const idx=bag.indexOf(k);
+    if(idx>=0)bag.splice(idx,1);
+    bag.push(k);
+    while(bag.length>30)bag.shift();
+    S.asked[key]=bag;
+    save();
+  }
+  return q;
+}
 async function nextQ(){
   if(!G)return;const card=$("card");if(card)card.classList.remove("celebrate");
   if(G.n>=G.total)return endMode();
   const lb=G.mode==="boss"?.5:G.mode==="lightning"?-.5:0;
+  const adventure=G.mode==="level"||G.mode==="boss";
   const q=G.mode==="english"?AI.english({cat:G.cat,level:(S.skill[G.cat]&&S.skill[G.cat].level)||1,n:G.n,habitat:G.habitat||""})
     :G.mode==="hebrew"?AI.hebrew({cat:G.cat,level:(S.skill[G.cat]&&S.skill[G.cat].level)||1,n:G.n})
     :G.mode==="daily"?AI.generate(G.ops,{rng:G.rng,level:Math.round(AI.avgLevel()),types:["choice","type","word"]})
+    :adventure?adventureQuestion(G.ops,{lvlBoost:lb,levelKey:G.mode+":"+G.world,avoid:G.q?qKey(G.q):""})
     :AI.generate(G.ops,{lvlBoost:lb,types:G.mode==="lightning"?["choice"]:undefined});
-  if(q.type==="word")q.text=await getWordProblem(q);
+  if(q.type==="word"&&!q.enText)q.text=await getWordProblem(q);
   if(!G)return;
   G.q=q;G.tries=0;G.start=performance.now();G.answered=false;
   $("prog").style.width=G.mode==="boss"?((1-G.bossHp/G.bossMax)*100+"%"):G.mode==="lightning"?"100%":(G.n/G.total*100)+"%";
@@ -1540,8 +1656,8 @@ async function nextQ(){
   }
 }
 function renderAnswer(area,q,cb){
-  if(q.type==="choice"||((q.lang==="en"||q.lang==="he")&&q.choices)){const opts=q.choices||AI.choices(q);const ltr=q.lang==="en"&&q.choiceDir!=="rtl";const word=q.lang==="en"||q.lang==="he";
-    area.innerHTML=`<div class="choices" ${ltr?'dir="ltr"':word?'dir="rtl"':""}>${opts.map(c=>`<button type="button" data-v="${escAttr(c)}" ${q.lang==="en"?(ltr?'class="en" dir="ltr"':'dir="rtl"'):q.lang==="he"?'class="he" dir="rtl"':""}>${word?esc(String(c)):c}</button>`).join("")}</div>`;
+  if(q.type==="choice"||((q.lang==="en"||q.lang==="he")&&q.choices)){const opts=q.choices||AI.choices(q);const ltr=(q.lang==="en"&&q.choiceDir!=="rtl")||q.choiceDir==="ltr";const word=q.lang==="en"||q.lang==="he"||q.choiceDir==="ltr";
+    area.innerHTML=`<div class="choices" ${ltr?'dir="ltr"':word?'dir="rtl"':""}>${opts.map(c=>`<button type="button" data-v="${escAttr(c)}" ${q.lang==="en"?(ltr?'class="en" dir="ltr"':'dir="rtl"'):q.lang==="he"?'class="he" dir="rtl"':q.choiceDir==="ltr"?'dir="ltr"':""}>${word?esc(String(c)):c}</button>`).join("")}</div>`;
     area.querySelectorAll("button").forEach(b=>b.onclick=()=>cb(readChoice(q,b.dataset.v),b));}
   else{area.innerHTML=`<input class="ans" type="number" inputmode="numeric" autocomplete="off"> <button class="btn">בדוק ✔️</button>`;
     const inp=area.querySelector("input"),go=()=>{if(inp.value!=="")cb(+inp.value,null);};
@@ -1599,6 +1715,7 @@ async function answer(v,btn){
     if(G.mode==="boss"&&G.tries===1){clearInterval(tInt);$("timerBar").style.width="100%";bossAttack(null);if(!G)return;} // עצירת שעון אחרי טעות – זמן ללמוד / pause timer to learn
     const ex=$("explain");ex.style.display="block";
     if(q.lang==="en"||q.lang==="he"){ex.innerHTML=`${S.skin} <b>הסבר:</b><br>${enExplain(q)}<br><br>עכשיו נסה שוב! 💪`;bindSpeak(ex);}
+    else if(q.numword){ex.innerHTML=`${S.skin} <b>הסבר:</b><br>${AI.explain(q)}<br><br>עכשיו נסה שוב! 💪`;}
     else ex.innerHTML=`${S.skin} <b>הסבר:</b><br>`+await getExplanation(q,v)+"<br><br>עכשיו נסה שוב! 💪";
     const inp=$("qArea").querySelector("input");if(inp){inp.value="";inp.focus();}
   }
