@@ -314,6 +314,16 @@ body[data-arena="space"] #arenaScreen,body[data-arena="space"] #duelScreen{backg
 body[data-arena="candy"] #arenaScreen,body[data-arena="candy"] #duelScreen{background:linear-gradient(160deg,#ff8cc0,#fff1c9)}
 body[data-arena="autumn"] #arenaScreen,body[data-arena="autumn"] #duelScreen{background:linear-gradient(160deg,#e07a2f,#ffe0a3)}
 .duelSplit{display:grid;grid-template-columns:1fr minmax(140px,200px) 1fr;gap:10px;align-items:stretch}
+body.shareDuel main{margin:4px auto;padding:0 8px 8px}
+body.shareDuel header{padding:4px 10px}
+.duelSplit.face{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto minmax(0,1fr);height:calc(100vh - 118px);height:calc(100dvh - 118px);min-height:420px}
+.duelSplit.face .duelSide.p1{order:1}
+.duelSplit.face .duelSide.p2{transform:rotate(180deg);order:-1}
+.duelSplit.face .duelMid{order:0}
+.duelSplit.face .duelSide{display:flex;flex-direction:column;justify-content:center;overflow:auto}
+.duelSplit.face .duelQ{font-size:1.25rem;margin:4px 0}
+.duelSplit.face .choices.mini button{font-size:1.2rem;padding:8px;min-height:48px;touch-action:manipulation}
+.bigScore{font-size:1.8rem;font-weight:900;color:#6a3df0}
 .duelSide{background:#ffffffee;border-radius:22px;padding:10px;box-shadow:0 8px 20px #4523b018}
 .duelSide.hit{animation:fhit .4s}
 .duelMid{text-align:center;display:flex;flex-direction:column;justify-content:center;gap:6px}
@@ -527,7 +537,7 @@ const OPNAME={"+":"חיבור","-":"חיסור","×":"כפל"};
 const DEFAULT={name:"",avatar:"🧒",coins:30,points:0,streak:0,bestStreak:0,totalCorrect:0,totalWrong:0,fastAnswers:0,
   unlocked:1,worldStars:[0,0,0,0],bossWon:[false,false,false,false],bosses:0,arenaGames:0,arenaWins:0,lightningBest:0,
   duelGames:0,duelWins:0,freeWheel:"",freeBox:"",cards:[],seasonClaim:"",
-  dailyDate:"",dailyCount:0,badges:[],enGrade:"34",enStars:{},stickers:[],skin:"🦉",skins:["🦉"],pups:{hint:2,freeze:1,shield:1,double:1,time:1,heal:1,steal:0},
+  dailyDate:"",dailyCount:0,badges:[],enGrade:"34",enStars:{},stickers:[],hard:false,skin:"🦉",skins:["🦉"],pups:{hint:2,freeze:1,shield:1,double:1,time:1,heal:1,steal:0},
   settings:{sound:true,music:false,timer:"normal",showAI:true,speak:false},
   pet:{stage:0},
   quests:{week:"",solve:0,streakHit:false,duelOrArena:false,claimed:[false,false,false]},
@@ -541,7 +551,7 @@ function load(){
   S.settings=Object.assign(structuredClone(DEFAULT.settings),d.settings||{});
   S.pups=Object.assign(structuredClone(DEFAULT.pups),d.pups||{});
   S.skill=structuredClone(DEFAULT.skill);
-  if(!Array.isArray(S.stickers))S.stickers=[];if(!S.enStars||typeof S.enStars!=="object"||Array.isArray(S.enStars))S.enStars={};if(!GRADES.some(g=>g.id===S.enGrade))S.enGrade="34";
+  if(!Array.isArray(S.stickers))S.stickers=[];if(!S.enStars||typeof S.enStars!=="object"||Array.isArray(S.enStars))S.enStars={};if(typeof S.hard!=="boolean")S.hard=false;if(!GRADES.some(g=>g.id===S.enGrade))S.enGrade="34";
   for(const op of ["+","-","×"].concat(typeof EN_IDS!=="undefined"?EN_IDS:[])){const base=DEFAULT.skill[op]||{level:1,acc:[],times:[],n:0,ok:0};S.skill[op]=Object.assign(structuredClone(base),(d.skill&&d.skill[op])||{});}
   S.equipped=Object.assign(structuredClone(DEFAULT.equipped),d.equipped||{});
   S.owned=structuredClone(DEFAULT.owned);
@@ -680,7 +690,7 @@ function ew(g,em,en,he,h,snd){return {g,em,en,he,h:h||"",snd:snd||""};}
 const EN_WORDS={
   vocab:[
     ew(1,"☀️","sun","שמש"),ew(1,"🌙","moon","ירח"),ew(1,"⭐","star","כוכב"),ew(1,"🏠","house","בית"),ew(1,"🌳","tree","עץ"),ew(1,"🚗","car","מכונית"),ew(1,"⚽","ball","כדור"),ew(1,"📕","book","ספר"),
-    ew(2,"🏫","school","בית ספר"),ew(2,"🏙️","city","עיר"),ew(2,"🌧️","rain","גשם"),ew(2,"🌸","flower","פרח"),ew(2,"🌉","bridge","גשר"),ew(2,"🏞️","river","נהר"),ew(2,"⛰️","mountain","הר"),ew(2,"🧑","friend","חבר"),
+    ew(2,"🏫","school","בית ספר"),ew(2,"🏙️","city","עיר"),ew(2,"🌧️","rain","גשם"),ew(2,"🌸","flower","פרח"),ew(2,"🏞️","park","פארק"),ew(2,"🏪","shop","חנות"),ew(2,"🏞️","river","נהר"),ew(2,"🧑","friend","חבר"),
     ew(3,"🧳","journey","מסע"),ew(3,"⛅","weather","מזג אוויר"),ew(3,"🗣️","language","שפה"),ew(3,"🏘️","community","קהילה"),ew(3,"🚦","traffic","תנועה"),ew(3,"🏡","neighborhood","שכונה"),ew(3,"🌍","environment","סביבה"),ew(3,"🚪","opportunity","הזדמנות"),
     ew(4,"🗳️","democracy","דמוקרטיה"),ew(4,"🎒","responsibility","אחריות"),ew(4,"🔭","perspective","נקודת מבט"),ew(4,"⚡","consequence","תוצאה"),ew(4,"🪪","identity","זהות"),ew(4,"🏛️","culture","תרבות"),ew(4,"💡","innovation","חדשנות"),ew(4,"🔬","hypothesis","השערה")
   ],
@@ -697,17 +707,19 @@ const EN_WORDS={
     ew(4,"👫","sibling","אח או אחות"),ew(4,"👴","ancestor","אב קדמון"),ew(4,"🌳","generation","דור"),ew(4,"⌚","wrist","שורש כף היד"),ew(4,"🦴","spine","עמוד שדרה"),ew(4,"🫁","lungs","ריאות"),ew(4,"💪","muscle","שריר"),ew(4,"💀","skeleton","שלד")
   ],
   zoo:[
-    ew(1,"🐱","cat","חתול","pets","meow"),ew(1,"🐶","dog","כלב","pets","woof"),ew(1,"🐰","rabbit","ארנב","pets","squeak"),ew(1,"🐹","hamster","אוגר","pets","squeak"),
-    ew(1,"🐮","cow","פרה","farm","moo"),ew(1,"🐷","pig","חזיר","farm","oink"),ew(1,"🐴","horse","סוס","farm","neigh"),ew(1,"🐑","sheep","כבשה","farm","baa"),
-    ew(1,"🦁","lion","אריה","savanna","roar"),ew(1,"🐘","elephant","פיל","savanna","trumpet"),ew(1,"🦓","zebra","זברה","savanna","bray"),ew(1,"🦒","giraffe","ג׳ירפה","savanna","hum"),
-    ew(1,"🐵","monkey","קוף","jungle","chatter"),ew(1,"🐸","frog","צפרדע","jungle","ribbit"),ew(1,"🐍","snake","נחש","jungle","hiss"),ew(1,"🦜","parrot","תוכי","jungle","squawk"),
-    ew(1,"🐟","fish","דג","sea","splash"),ew(1,"🦆","duck","ברווז","sea","quack"),ew(1,"🦀","crab","סרטן","sea","click"),ew(1,"🐬","dolphin","דולפין","sea","click"),
-    ew(1,"🐔","hen","תרנגולת","birds","cluck"),ew(1,"🐦","bird","ציפור","birds","chirp"),ew(1,"🦉","owl","ינשוף","birds","hoot"),ew(1,"🐧","penguin","פינגווין","birds","honk"),
-    ew(2,"🐭","mouse","עכבר","pets","squeak"),ew(2,"🐑","sheep","כבשה","farm","baa"),ew(2,"🐐","goat","עז","farm","baa"),
-    ew(2,"🦒","giraffe","ג׳ירפה","savanna","hum"),ew(2,"🐯","tiger","טיגריס","jungle","roar"),ew(2,"🐻","bear","דוב","jungle","growl"),
-    ew(2,"🐬","dolphin","דולפין","sea","click"),ew(2,"🐋","whale","לווייתן","sea","sing"),ew(2,"🐢","turtle","צב","sea","splash"),
-    ew(2,"🦜","parrot","תוכי","birds","squawk"),ew(2,"🐝","bee","דבורה","birds","buzz"),ew(2,"🐧","penguin","פינגווין","birds","honk"),
-    ew(3,"🐹","hamster","אוגר","pets","squeak"),ew(3,"🐪","camel","גמל","savanna","grunt"),ew(3,"🦏","rhino","קרנף","savanna","grunt"),
+    ew(1,"🐱","cat","חתול","pets","meow"),ew(1,"🐶","dog","כלב","pets","woof"),ew(1,"🐰","rabbit","ארנב","pets","squeak"),
+    ew(1,"🐮","cow","פרה","farm","moo"),ew(1,"🐷","pig","חזיר","farm","oink"),ew(1,"🐴","horse","סוס","farm","neigh"),
+    ew(1,"🦁","lion","אריה","savanna","roar"),ew(1,"🦓","zebra","זברה","savanna","bray"),ew(1,"🦌","deer","צבי","savanna","call"),
+    ew(1,"🐵","monkey","קוף","jungle","chatter"),ew(1,"🐸","frog","צפרדע","jungle","ribbit"),ew(1,"🐍","snake","נחש","jungle","hiss"),
+    ew(1,"🐟","fish","דג","sea","splash"),ew(1,"🦆","duck","ברווז","sea","quack"),ew(1,"🦀","crab","סרטן","sea","click"),
+    ew(1,"🐔","hen","תרנגולת","birds","cluck"),ew(1,"🐦","bird","ציפור","birds","chirp"),ew(1,"🦉","owl","ינשוף","birds","hoot"),
+    ew(2,"🐭","mouse","עכבר","pets","squeak"),ew(2,"🐰","rabbit","ארנב","pets","squeak"),ew(2,"🐱","cat","חתול","pets","meow"),
+    ew(2,"🐑","sheep","כבשה","farm","baa"),ew(2,"🐐","goat","עז","farm","baa"),ew(2,"🐮","cow","פרה","farm","moo"),
+    ew(2,"🦁","lion","אריה","savanna","roar"),ew(2,"🦓","zebra","זברה","savanna","bray"),ew(2,"🦌","deer","צבי","savanna","call"),
+    ew(2,"🐯","tiger","טיגריס","jungle","roar"),ew(2,"🐻","bear","דוב","jungle","growl"),ew(2,"🐵","monkey","קוף","jungle","chatter"),
+    ew(2,"🐟","fish","דג","sea","splash"),ew(2,"🐢","turtle","צב","sea","splash"),ew(2,"🦆","duck","ברווז","sea","quack"),
+    ew(2,"🐦","bird","ציפור","birds","chirp"),ew(2,"🐝","bee","דבורה","birds","buzz"),ew(2,"🦉","owl","ינשוף","birds","hoot"),
+    ew(3,"🐹","hamster","אוגר","pets","squeak"),ew(3,"🐘","elephant","פיל","savanna","trumpet"),ew(3,"🦒","giraffe","ג׳ירפה","savanna","hum"),ew(3,"🐪","camel","גמל","savanna","grunt"),ew(3,"🦏","rhino","קרנף","savanna","grunt"),ew(3,"🐬","dolphin","דולפין","sea","click"),ew(3,"🐋","whale","לווייתן","sea","sing"),ew(3,"🐧","penguin","פינגווין","birds","honk"),ew(3,"🦜","parrot","תוכי","birds","squawk"),
     ew(3,"🐊","crocodile","תנין","jungle","snap"),ew(3,"🦊","fox","שועל","jungle","yelp"),ew(3,"🐺","wolf","זאב","jungle","howl"),
     ew(3,"🦈","shark","כריש","sea","splash"),ew(3,"🐙","octopus","תמנון","sea","splash"),ew(3,"🦭","seal","כלב ים","sea","bark"),
     ew(3,"🦅","eagle","נשר","birds","screech"),ew(3,"🦩","flamingo","פלמינגו","birds","honk"),ew(3,"🦘","kangaroo","קנגורו","savanna","thump"),
@@ -718,27 +730,27 @@ const EN_WORDS={
     ew(4,"🦢","swan","ברבור","birds","honk"),ew(4,"🐦","pelican","שקנאי","birds","squawk")
   ],
   food:[
-    ew(1,"🍎","apple","תפוח"),ew(1,"🍌","banana","בננה"),ew(1,"🥛","milk","חלב"),ew(1,"🍞","bread","לחם"),ew(1,"🥚","egg","ביצה"),ew(1,"💧","water","מים"),ew(1,"🍪","cookie","עוגייה"),ew(1,"🧃","juice","מיץ"),
-    ew(2,"🍕","pizza","פיצה"),ew(2,"🥗","salad","סלט"),ew(2,"🍜","soup","מרק"),ew(2,"🥪","sandwich","כריך"),ew(2,"🍇","grapes","ענבים"),ew(2,"🥕","carrot","גזר"),ew(2,"🧀","cheese","גבינה"),ew(2,"🍗","chicken","עוף"),
+    ew(1,"🍎","apple","תפוח"),ew(1,"🍌","banana","בננה"),ew(1,"🥛","milk","חלב"),ew(1,"🍞","bread","לחם"),ew(1,"🥚","egg","ביצה"),ew(1,"💧","water","מים"),ew(1,"🍪","cake","עוגה"),ew(1,"🧃","juice","מיץ"),
+    ew(2,"🍕","pizza","פיצה"),ew(2,"🥗","salad","סלט"),ew(2,"🍜","soup","מרק"),ew(2,"🍰","cake","עוגה"),ew(2,"🍇","grapes","ענבים"),ew(2,"🥕","carrot","גזר"),ew(2,"🧀","cheese","גבינה"),ew(2,"🍗","chicken","עוף"),
     ew(3,"🥐","breakfast","ארוחת בוקר"),ew(3,"🥦","vegetable","ירק"),ew(3,"🍓","fruit","פרי"),ew(3,"😋","hungry","רעב"),ew(3,"🥤","thirsty","צמא"),ew(3,"🍰","dessert","קינוח"),ew(3,"📋","menu","תפריט"),ew(3,"🌶️","spicy","חריף"),
     ew(4,"🥗","nutrition","תזונה"),ew(4,"🧂","ingredient","מרכיב"),ew(4,"🥕","vegetarian","צמחוני"),ew(4,"🍽️","portion","מנה"),ew(4,"💊","vitamin","ויטמין"),ew(4,"🥩","protein","חלבון"),ew(4,"🥤","beverage","משקה"),ew(4,"🍽️","appetite","תיאבון")
   ],
   furniture:[
-    ew(1,"🪑","chair","כיסא"),ew(1,"🪵","table","שולחן"),ew(1,"🛏️","bed","מיטה"),ew(1,"🚪","door","דלת"),ew(1,"🪟","window","חלון"),ew(1,"💡","lamp","מנורה"),ew(1,"🛋️","sofa","ספה"),ew(1,"🕒","clock","שעון"),
-    ew(2,"🪞","mirror","מראה"),ew(2,"🛏️","pillow","כרית"),ew(2,"🧣","blanket","שמיכה"),ew(2,"🗄️","cupboard","ארון"),ew(2,"🪑","desk","שולחן כתיבה"),ew(2,"🪟","curtain","וילון"),ew(2,"🧶","carpet","שטיח"),ew(2,"📚","shelf","מדף"),
+    ew(1,"🪑","chair","כיסא"),ew(1,"🪵","table","שולחן"),ew(1,"🛏️","bed","מיטה"),ew(1,"🚪","door","דלת"),ew(1,"💡","lamp","מנורה"),ew(1,"🛋️","sofa","ספה"),ew(1,"🕒","clock","שעון"),ew(1,"🪟","window","חלון"),
+    ew(2,"🪞","mirror","מראה"),ew(2,"🛏️","pillow","כרית"),ew(2,"🧣","blanket","שמיכה"),ew(2,"🪑","chair","כיסא"),ew(2,"🛏️","bed","מיטה"),ew(2,"🚪","door","דלת"),ew(2,"🧶","carpet","שטיח"),ew(2,"📚","shelf","מדף"),
     ew(3,"🗄️","drawer","מגירה"),ew(3,"🚪","closet","ארון בגדים"),ew(3,"🛏️","mattress","מזרן"),ew(3,"🪑","armchair","כורסה"),ew(3,"☁️","ceiling","תקרה"),ew(3,"🟫","floor","רצפה"),ew(3,"🛋️","furniture","רהיטים"),ew(3,"📚","bookshelf","כוננית"),
     ew(4,"👗","wardrobe","ארון בגדים גדול"),ew(4,"🛏️","nightstand","שידה"),ew(4,"💡","chandelier","נברשת"),ew(4,"🧵","upholstery","ריפוד"),ew(4,"🛏️","headboard","ראש מיטה"),ew(4,"🏠","interior","פנים הבית"),ew(4,"🪑","furnishings","ריהוט"),ew(4,"🪑","ottoman","הדום")
   ],
   school:[
-    ew(1,"✏️","pencil","עיפרון"),ew(1,"🖊️","pen","עט"),ew(1,"📓","notebook","מחברת"),ew(1,"🧼","eraser","מחק"),ew(1,"📏","ruler","סרגל"),ew(1,"🎒","bag","תיק"),ew(1,"📕","book","ספר"),ew(1,"🖍️","crayon","צבע"),
-    ew(2,"✂️","scissors","מספריים"),ew(2,"🧴","glue","דבק"),ew(2,"🖊️","marker","טוש"),ew(2,"✏️","sharpener","מחדד"),ew(2,"📄","paper","נייר"),ew(2,"📁","folder","תיקייה"),ew(2,"🧮","calculator","מחשבון"),ew(2,"📖","dictionary","מילון"),
+    ew(1,"🖊️","pen","עט"),ew(1,"✏️","pencil","עיפרון"),ew(1,"📕","book","ספר"),ew(1,"🎒","bag","תיק"),ew(1,"📏","ruler","סרגל"),ew(1,"🧼","eraser","מחק"),ew(1,"📓","notebook","מחברת"),ew(1,"🖍️","crayon","צבע"),
+    ew(2,"📄","paper","נייר"),ew(2,"🧴","glue","דבק"),ew(2,"✂️","scissors","מספריים"),ew(2,"🖊️","pen","עט"),ew(2,"📕","book","ספר"),ew(2,"🎒","bag","תיק"),ew(2,"📁","folder","תיק"),ew(2,"🖊️","marker","טוש"),
     ew(3,"📝","homework","שיעורי בית"),ew(3,"🧪","exam","מבחן"),ew(3,"📚","library","ספרייה"),ew(3,"📋","project","עבודה"),ew(3,"🧒","classmate","חבר לכיתה"),ew(3,"⏰","recess","הפסקה"),ew(3,"📘","subject","מקצוע"),ew(3,"💯","grade","ציון"),
     ew(4,"🎓","lecture","הרצאה"),ew(4,"📅","semester","סמסטר"),ew(4,"📄","assignment","מטלה"),ew(4,"✍️","essay","חיבור"),ew(4,"🧪","laboratory","מעבדה"),ew(4,"🔬","research","מחקר"),ew(4,"🏅","scholarship","מלגה"),ew(4,"⏳","deadline","מועד אחרון")
   ],
   music:[
-    ew(1,"🎸","guitar","גיטרה"),ew(1,"🎹","piano","פסנתר"),ew(1,"🥁","drum","תוף"),ew(1,"🎻","violin","כינור"),ew(1,"🎺","trumpet","חצוצרה"),ew(1,"🪈","flute","חליל"),ew(1,"🔔","bell","פעמון"),ew(1,"🎵","whistle","משרוקית"),
-    ew(2,"🎷","saxophone","סקסופון"),ew(2,"🎶","harp","נבל"),ew(2,"🎻","cello","צ׳לו"),ew(2,"🎵","clarinet","קלרינט"),ew(2,"🎺","trombone","טרומבון"),ew(2,"🎹","keyboard","קלידים"),ew(2,"🎤","microphone","מיקרופון"),ew(2,"🎶","song","שיר"),
-    ew(3,"🎼","orchestra","תזמורת"),ew(3,"🎵","melody","מנגינה"),ew(3,"🥁","rhythm","קצב"),ew(3,"✍️","composer","מלחין"),ew(3,"🎤","concert","הופעה"),ew(3,"👥","choir","מקהלה"),ew(3,"🎵","note","תו"),ew(3,"💓","beat","פעימה"),
+    ew(1,"🥁","drum","תוף"),ew(1,"🔔","bell","פעמון"),ew(1,"🎹","piano","פסנתר"),ew(1,"🪈","flute","חליל"),ew(1,"🎸","guitar","גיטרה"),ew(1,"🎶","song","שיר"),
+    ew(2,"🥁","drum","תוף"),ew(2,"🔔","bell","פעמון"),ew(2,"🎹","piano","פסנתר"),ew(2,"🎸","guitar","גיטרה"),ew(2,"🎻","violin","כינור"),ew(2,"🎶","harp","נבל"),ew(2,"🎶","song","שיר"),ew(2,"🎺","horn","קרן"),
+    ew(3,"🎷","saxophone","סקסופון"),ew(3,"🎻","cello","צ׳לו"),ew(3,"🎺","trumpet","חצוצרה"),ew(3,"🎼","orchestra","תזמורת"),ew(3,"🎵","melody","מנגינה"),ew(3,"🥁","rhythm","קצב"),ew(3,"✍️","composer","מלחין"),ew(3,"🎤","concert","הופעה"),
     ew(4,"🎼","symphony","סימפוניה"),ew(4,"🎩","conductor","מנצח"),ew(4,"🔁","rehearsal","חזרה"),ew(4,"🎶","harmony","הרמוניה"),ew(4,"🎸","acoustic","אקוסטי"),ew(4,"⏱️","tempo","טמפו"),ew(4,"🎹","octave","אוקטבה"),ew(4,"📈","crescendo","קרשנדו")
   ],
   basic:[
@@ -748,19 +760,19 @@ const EN_WORDS={
     ew(4,"➡️","therefore","לכן"),ew(4,"⚖️","however","אולם"),ew(4,"🧗","despite","למרות"),ew(4,"💭","perhaps","אולי"),ew(4,"📌","regarding","לגבי"),ew(4,"≈","approximately","בערך"),ew(4,"⭐","significant","משמעותי"),ew(4,"✅","essential","חיוני")
   ],
   jobs:[
-    ew(1,"🩺","doctor","רופא"),ew(1,"👩‍🏫","teacher","מורה"),ew(1,"👨‍🍳","chef","טבח"),ew(1,"✈️","pilot","טייס"),ew(1,"👮","police officer","שוטר"),ew(1,"🚗","driver","נהג"),ew(1,"🌾","farmer","חקלאי"),ew(1,"🎤","singer","זמר"),
-    ew(2,"🚒","firefighter","כבאי"),ew(2,"💉","nurse","אח"),ew(2,"👷","engineer","מהנדס"),ew(2,"🎨","artist","אמן"),ew(2,"🦷","dentist","רופא שיניים"),ew(2,"🐾","vet","וטרינר"),ew(2,"🥖","baker","אופה"),ew(2,"🎖️","soldier","חייל"),
-    ew(3,"⚖️","lawyer","עורך דין"),ew(3,"📰","journalist","עיתונאי"),ew(3,"🔬","scientist","מדען"),ew(3,"📐","architect","אדריכל"),ew(3,"💻","programmer","מתכנת"),ew(3,"⚖️","judge","שופט"),ew(3,"💊","pharmacist","רוקח"),ew(3,"💡","electrician","חשמלאי"),
+    ew(1,"👨‍🍳","chef","טבח"),ew(1,"✈️","pilot","טייס"),ew(1,"🩺","doctor","רופא"),ew(1,"🎤","singer","זמר"),ew(1,"🚗","driver","נהג"),ew(1,"👩‍🏫","teacher","מורה"),
+    ew(2,"💉","nurse","אח"),ew(2,"🥖","baker","אופה"),ew(2,"🎨","artist","אמן"),ew(2,"👩‍🏫","teacher","מורה"),ew(2,"🩺","doctor","רופא"),ew(2,"🎤","singer","זמר"),ew(2,"🌾","farmer","חקלאי"),ew(2,"👮","police","שוטר"),
+    ew(3,"🚒","firefighter","כבאי"),ew(3,"👷","engineer","מהנדס"),ew(3,"🦷","dentist","רופא שיניים"),ew(3,"⚖️","lawyer","עורך דין"),ew(3,"📰","journalist","עיתונאי"),ew(3,"🔬","scientist","מדען"),ew(3,"📐","architect","אדריכל"),ew(3,"💻","programmer","מתכנת"),ew(3,"⚖️","judge","שופט"),ew(3,"💊","pharmacist","רוקח"),ew(3,"💡","electrician","חשמלאי"),
     ew(4,"🏥","surgeon","מנתח"),ew(4,"🧠","psychologist","פסיכולוג"),ew(4,"📈","economist","כלכלן"),ew(4,"🤝","diplomat","דיפלומט"),ew(4,"🚀","entrepreneur","יזם"),ew(4,"📊","accountant","רואה חשבון"),ew(4,"🧬","biologist","ביולוג"),ew(4,"🚑","paramedic","פרמדיק")
   ]
 };
 const EN_SENT=[
-  {g:1,gap:"I see a ___.",ans:"cat",full:"I see a cat.",he:"אני רואה חתול.",opts:["cat","dog","book","sun"]},
-  {g:1,gap:"The ball is ___.",ans:"red",full:"The ball is red.",he:"הכדור אדום.",opts:["red","blue","two","milk"]},
-  {g:1,gap:"I have a ___.",ans:"dog",full:"I have a dog.",he:"יש לי כלב.",opts:["dog","mom","chair","one"]},
-  {g:2,gap:"We go to ___.",ans:"school",full:"We go to school.",he:"אנחנו הולכים לבית הספר.",opts:["school","pizza","river","drum"]},
-  {g:2,gap:"She eats an ___.",ans:"apple",full:"She eats an apple.",he:"היא אוכלת תפוח.",opts:["apple","window","uncle","flute"]},
-  {g:2,gap:"Please open the ___.",ans:"door",full:"Please open the door.",he:"בבקשה תפתח את הדלת.",opts:["door","soup","pencil","lion"]},
+  {g:1,gap:"I see a ___.",ans:"cat",full:"I see a cat.",he:"אני רואה חתול.",opts:["cat","dog","sun","book"]},
+  {g:1,gap:"It is ___.",ans:"red",full:"It is red.",he:"זה אדום.",opts:["red","blue","big","one"]},
+  {g:1,gap:"A ___.",ans:"dog",full:"A dog.",he:"כלב.",opts:["dog","mom","bed","sun"]},
+  {g:2,gap:"I see a ___.",ans:"bird",full:"I see a bird.",he:"אני רואה ציפור.",opts:["bird","fish","book","milk"]},
+  {g:2,gap:"We go to ___.",ans:"school",full:"We go to school.",he:"הולכים לבית הספר.",opts:["school","park","home","shop"]},
+  {g:2,gap:"Open the ___.",ans:"door",full:"Open the door.",he:"תפתח את הדלת.",opts:["door","book","bag","milk"]},
   {g:3,gap:"They are ___ today.",ans:"happy",full:"They are happy today.",he:"הם שמחים היום.",opts:["happy","library","shark","homework"]},
   {g:3,gap:"I would like some ___.",ans:"water",full:"I would like some water.",he:"אני רוצה קצת מים.",opts:["water","project","elbow","melody"]},
   {g:3,gap:"The teacher gives ___.",ans:"homework",full:"The teacher gives homework.",he:"המורה נותן שיעורי בית.",opts:["homework","ceiling","wolf","rhythm"]},
@@ -773,6 +785,12 @@ ACH.push({id:"en1",em:"🔤",name:"שלום אנגלית",d:"ענו נכון ע�
 let subjectPick="math";
 const SUBJECTS=[["math","🔢 חשבון"],["en","🔤 אנגלית"],["mix","🎲 מעורב"]];
 function gradeRank(id){const g=GRADES.find(x=>x.id===id);return g?g.g:1;}
+function youngGrade(){return gradeRank(S.enGrade||"34")<=2;}
+function choiceCount(){const g=gradeRank(S.enGrade||"34");return g<=1?2:g===2?3:4;}
+function prize(n){n=Math.round(n)||0;if(!S||!S.hard||n<=0)return n;return n+Math.max(1,Math.round(n*0.25));}
+function stripEmoji(s){return String(s).replace(/\p{Extended_Pictographic}/gu,"").replace(/\uFE0F/g,"").replace(/\s{2,}/g," ").trim();}
+function hardBtn(){return `<button type="button" class="btn ${S.hard?"pink":""}" id="hardBtn">${S.hard?"מצב קשה: בלי תמונות":"מצב קשה"}</button>`;}
+function bindHard(rerender){const b=$("hardBtn");if(!b)return;b.onclick=()=>{S.hard=!S.hard;save();sfx("click");toast(S.hard?"מצב קשה: רק מילים ומספרים, וקצת יותר מטבעות":"מצב קשה כבוי");rerender();};}
 function gradeBar(){return `<div class="grades">${GRADES.map(g=>`<button type="button" class="btn ${S.enGrade===g.id?"green":""}" data-grade="${g.id}">${g.short}</button>`).join("")}</div>`;}
 function bindGrades(root,rerender){if(!root)return;root.querySelectorAll("[data-grade]").forEach(b=>b.onclick=()=>{S.enGrade=b.dataset.grade;save();sfx("click");rerender();});}
 function subjectBar(id){return `<div class="subj" id="${id}">${SUBJECTS.map(([k,n])=>`<button type="button" class="btn ${subjectPick===k?"green":""}" data-sub="${k}">${n}</button>`).join("")}</div>`;}
@@ -783,27 +801,27 @@ function sameAns(a,b){if(a==null||b==null)return false;const as=typeof a==="stri
 function readChoice(q,raw){if(q&&q.lang==="en")return raw;return /^-?\d+$/.test(String(raw))?+raw:raw;}
 function speakEn(text){try{if(!text||!window.speechSynthesis||typeof SpeechSynthesisUtterance!=="function"){toast("ההקראה לא זמינה בדפדפן הזה");return;}const u=new SpeechSynthesisUtterance(String(text));u.lang="en-US";u.rate=.9;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){toast("ההקראה לא זמינה כרגע");}}
 function bindSpeak(root){if(!root)return;root.querySelectorAll("[data-say]").forEach(b=>{b.onclick=e=>{e.stopPropagation();e.preventDefault();speakEn(b.getAttribute("data-say"));};});}
-function enQuestionHtml(q){const say=q.speak?`<button type="button" class="speak" data-say="${escAttr(q.speak)}" title="השמע">🔊</button>`:"";const line=q.showEn?`<div class="enLine" dir="ltr"><bdo dir="ltr">${esc(q.showEn)}</bdo></div>`:"";return `<div class="enWrap">${q.em?`<div class="enBig">${q.em}</div>`:""}<div class="heQ" dir="rtl">${esc(q.hePrompt||"")}</div>${line}<div class="sayRow">${say}</div></div>`;}
-function showQuestion(el,q){if(!el||!q)return;el.className="q"+(q.lang==="en"?" enQ":q.type==="word"?" word":"");if(q.type==="word"&&q.lang!=="en"){el.textContent=q.text;return;}el.innerHTML=q.lang==="en"?enQuestionHtml(q):`<bdo dir="ltr">${esc(q.text)}</bdo>`;bindSpeak(el);if(q.lang==="en"&&S.settings&&S.settings.speak&&q.autoSpeak)speakEn(q.autoSpeak);}
+function enQuestionHtml(q){const say=q.speak?`<button type="button" class="speak" data-say="${escAttr(q.speak)}" title="השמע">🔊</button>`:"";const line=q.showEn?`<div class="enLine" dir="ltr"><bdo dir="ltr">${esc(q.showEn)}</bdo></div>`:"";const em=S.hard?"":(q.em||"");return `<div class="enWrap">${em?`<div class="enBig">${em}</div>`:""}<div class="heQ" dir="rtl">${esc(q.hePrompt||"")}</div>${line}<div class="sayRow">${say}</div></div>`;}
+function showQuestion(el,q){if(!el||!q)return;el.className="q"+(q.lang==="en"?" enQ":q.type==="word"?" word":"");if(q.type==="word"&&q.lang!=="en"){el.textContent=S.hard?stripEmoji(q.text):q.text;return;}el.innerHTML=q.lang==="en"?enQuestionHtml(q):`<bdo dir="ltr">${esc(S.hard?stripEmoji(q.text):q.text)}</bdo>`;bindSpeak(el);if(q.lang==="en"&&S.settings&&S.settings.speak&&q.autoSpeak)speakEn(q.autoSpeak);}
 function enExplain(q){const say=q.speak?`<button type="button" class="speak" data-say="${escAttr(q.speak)}">🔊</button> `:"";const shown=q.choiceDir==="rtl"?esc(String(q.ans)):`<bdo dir="ltr"><b>${esc(String(q.ans))}</b></bdo>`;return `${esc(q.tip||"נסו שוב אחרי שתשמעו את המילה.")}<br>${say}התשובה: ${shown}`;}
 function allEnWords(){const out=[];Object.keys(EN_WORDS).forEach(k=>EN_WORDS[k].forEach(w=>out.push(w)));return out;}
-function pickChoices(correct,pool){const out=[correct];const bag=(pool||[]).filter(x=>String(x).toLowerCase()!==String(correct).toLowerCase()).sort(()=>Math.random()-.5);for(const x of bag){if(out.length>=4)break;if(!out.some(y=>String(y).toLowerCase()===String(x).toLowerCase()))out.push(x);}const fill=["cat","dog","sun","book","red","milk","chair","yes"];for(const x of fill){if(out.length>=4)break;if(!out.some(y=>String(y).toLowerCase()===String(x).toLowerCase()))out.push(x);}return out.sort(()=>Math.random()-.5);}
-function enModes(cat){if(cat==="spell")return ["spell"];if(cat==="sentence")return ["sent"];if(cat==="tr")return ["he2en","en2he"];if(cat==="zoo")return ["pic","spell","sound","habitat"];if(cat==="basic")return ["he2en","spell","en2he","pic"];return ["pic","spell","he2en","en2he"];}
+function pickChoices(correct,pool,n){n=n||choiceCount();const out=[correct];const bag=(pool||[]).filter(x=>String(x).toLowerCase()!==String(correct).toLowerCase()).sort(()=>Math.random()-.5);for(const x of bag){if(out.length>=n)break;if(!out.some(y=>String(y).toLowerCase()===String(x).toLowerCase()))out.push(x);}const fill=["cat","dog","sun","book","red","milk","yes","no"];for(const x of fill){if(out.length>=n)break;if(!out.some(y=>String(y).toLowerCase()===String(x).toLowerCase()))out.push(x);}return out.sort(()=>Math.random()-.5);}
+function enModes(cat){const y=youngGrade();if(cat==="spell")return ["spell"];if(cat==="sentence")return ["sent"];if(cat==="tr")return y?["he2en"]:["he2en","en2he"];if(cat==="zoo")return y?["pic","sound"]:["pic","spell","sound","habitat"];if(cat==="basic")return y?["pic","he2en"]:["he2en","spell","en2he","pic"];return y?["pic","he2en"]:["pic","spell","he2en","en2he"];}
 function wordPool(cat,g,level,habitat){const src=(cat==="spell"||cat==="tr")?allEnWords():(EN_WORDS[cat]||[]).slice();let rows=src.filter(w=>w.g===g);if(rows.length<4)rows=rows.concat(src.filter(w=>w.g===g-1));if(level>=5)rows=rows.concat(src.filter(w=>w.g===Math.min(4,g+1)&&w.g!==g));if(habitat){let hab=rows.filter(w=>w.h===habitat);if(hab.length<3)hab=src.filter(w=>w.h===habitat&&w.g<=g&&w.g>=Math.max(1,g-1));if(hab.length<3)hab=src.filter(w=>w.h===habitat);if(hab.length)rows=hab;}if(rows.length<3)rows=src.filter(w=>w.g<=g);if(rows.length<3)rows=src.length?src:EN_WORDS.vocab.slice();return rows;}
 function maskWord(word){const chars=[...word];const idxs=[];chars.forEach((c,i)=>{if(c!==" ")idxs.push(i);});if(!idxs.length)return word;const i=idxs[Math.floor(Math.random()*idxs.length)];chars[i]="_";return chars.join(" ");}
 function scrambleWord(word){const a=[...word.replace(/ /g,"")];if(a.length<2)return a.join(" ");for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=a[i];a[i]=a[j];a[j]=t;}if(a.join("")===word.replace(/ /g,"")){const t=a[0];a[0]=a[1];a[1]=t;}return a.join(" ");}
 function enq(p){return Object.assign({lang:"en",type:"choice",choiceDir:"ltr",autoSpeak:"",text:p.showEn||p.hePrompt||""},p);}
-function picQuestion(w,rows,cat,level){return enq({op:cat,lvl:level,mode:"pic",ans:w.en,gloss:w.he,em:w.em,hePrompt:"איך אומרים את זה באנגלית?",showEn:"",speak:w.en,choices:pickChoices(w.en,rows.map(x=>x.en)),tip:w.en+" פירושו "+w.he+"."});}
-function spellQuestion(w,level,cat){const hard=level>=4||w.en.length>6;const shown=hard?scrambleWord(w.en):maskWord(w.en);const ask=hard?"סדרו את האותיות למילה הנכונה.":"השלימו את האות החסרה.";return enq({op:cat,lvl:level,mode:"spell",ans:w.en,gloss:w.he,em:w.em||"🔤",hePrompt:ask+" בעברית: "+w.he,showEn:shown,speak:w.en,choices:pickChoices(w.en,(EN_WORDS[cat]||allEnWords()).map(x=>x.en)),tip:"האיות הנכון הוא "+w.en+" — "+w.he+"."});}
-function soundQuestion(w,rows,cat,level){if(!w.snd)return picQuestion(w,rows,cat,level);const sounds=rows.map(x=>x.snd).filter(Boolean);return enq({op:cat,lvl:level,mode:"sound",ans:w.snd,gloss:w.he,em:w.em,hePrompt:"איזה קול משמיע "+w.he+"?",showEn:"",speak:w.snd,choices:pickChoices(w.snd,sounds.concat(["meow","woof","roar","moo","chirp"])),tip:w.he+" משמיע באנגלית את הקול "+w.snd+"."});}
-function habQuestion(w,cat,level){if(!w.h||!HABS[w.h])return picQuestion(w,[w],cat,level);const ans=HABS[w.h][0];return enq({op:cat,lvl:level,mode:"habitat",ans,gloss:w.he,em:w.em,hePrompt:"איפה חי "+w.he+"?",showEn:"",speak:ans,choices:pickChoices(ans,Object.keys(HABS).map(k=>HABS[k][0])),tip:w.he+" חי ב"+HABS[w.h][1]+". באנגלית: "+ans+"."});}
-function trQuestion(w,rows,toEn,cat,level){if(toEn)return enq({op:cat,lvl:level,mode:"he2en",ans:w.en,gloss:w.he,em:w.em,hePrompt:"מה המילה באנגלית ל"+w.he+"?",showEn:"",speak:w.en,choices:pickChoices(w.en,rows.map(x=>x.en)),tip:w.he+" באנגלית הוא "+w.en+"."});return enq({op:cat,lvl:level,mode:"en2he",ans:w.he,gloss:w.he,em:w.em,hePrompt:"מה התרגום לעברית?",showEn:w.en,speak:w.en,autoSpeak:w.en,choiceDir:"rtl",choices:pickChoices(w.he,rows.map(x=>x.he).concat(["חתול","בית","מים","ספר"])),tip:w.en+" בעברית הוא "+w.he+"."});}
-function sentQuestion(g,level){let rows=EN_SENT.filter(s=>s.g===g);if(level<=2)rows=rows.concat(EN_SENT.filter(s=>s.g===g-1));if(rows.length<1)rows=EN_SENT.filter(s=>s.g<=g);if(!rows.length)rows=EN_SENT.slice();const s=AI.pick(rows);return enq({op:"sentence",lvl:level,mode:"sent",ans:s.ans,gloss:s.he,em:"💬",hePrompt:s.he,showEn:s.gap,speak:s.full,choices:pickChoices(s.ans,s.opts||[]),tip:"המשפט המלא: "+s.full+" בעברית: "+s.he});}
+function picQuestion(w,rows,cat,level){const y=youngGrade();const prompt=S.hard?(y?w.he+"?":"איך אומרים "+w.he+"?"):(y?"מה זה באנגלית?":"איך אומרים את זה באנגלית?");return enq({op:cat,lvl:level,mode:"pic",ans:w.en,gloss:w.he,em:S.hard?"":w.em,hePrompt:prompt,showEn:"",speak:w.en,choices:pickChoices(w.en,rows.map(x=>x.en)),tip:w.en+" = "+w.he});}
+function spellQuestion(w,level,cat){const scramble=!youngGrade()&&(level>=4||w.en.length>6);const shown=scramble?scrambleWord(w.en):maskWord(w.en);const ask=scramble?(youngGrade()?"סדרו: ":"סדרו את האותיות: "):(youngGrade()?"אות חסרה: ":"השלימו את האות: ");return enq({op:cat,lvl:level,mode:"spell",ans:w.en,gloss:w.he,em:S.hard?"":(w.em||"🔤"),hePrompt:ask+w.he,showEn:shown,speak:w.en,choices:pickChoices(w.en,(EN_WORDS[cat]||allEnWords()).map(x=>x.en)),tip:w.en+" = "+w.he});}
+function soundQuestion(w,rows,cat,level){if(!w.snd)return picQuestion(w,rows,cat,level);const sounds=rows.map(x=>x.snd).filter(Boolean);const y=youngGrade();return enq({op:cat,lvl:level,mode:"sound",ans:w.snd,gloss:w.he,em:S.hard?"":w.em,hePrompt:(y?"קול של ":"איזה קול משמיע ")+w.he+"?",showEn:"",speak:w.snd,choices:pickChoices(w.snd,sounds.concat(["meow","woof","roar","moo"])),tip:w.he+" = "+w.snd});}
+function habQuestion(w,cat,level){if(!w.h||!HABS[w.h])return picQuestion(w,[w],cat,level);const ans=HABS[w.h][0];const y=youngGrade();return enq({op:cat,lvl:level,mode:"habitat",ans,gloss:w.he,em:S.hard?"":w.em,hePrompt:(y?"איפה ":"איפה חי ")+w.he+"?",showEn:"",speak:ans,choices:pickChoices(ans,Object.keys(HABS).map(k=>HABS[k][0])),tip:w.he+" = "+ans});}
+function trQuestion(w,rows,toEn,cat,level){const y=youngGrade();if(toEn)return enq({op:cat,lvl:level,mode:"he2en",ans:w.en,gloss:w.he,em:S.hard?"":w.em,hePrompt:y?w.he+"?":"מה באנגלית: "+w.he+"?",showEn:"",speak:w.en,choices:pickChoices(w.en,rows.map(x=>x.en)),tip:w.he+" = "+w.en});return enq({op:cat,lvl:level,mode:"en2he",ans:w.he,gloss:w.he,em:S.hard?"":w.em,hePrompt:y?"בעברית?":"מה התרגום לעברית?",showEn:w.en,speak:w.en,autoSpeak:w.en,choiceDir:"rtl",choices:pickChoices(w.he,rows.map(x=>x.he).concat(["חתול","בית","מים","ספר"])),tip:w.en+" = "+w.he});}
+function sentQuestion(g,level){let rows=EN_SENT.filter(s=>s.g===g);if(!youngGrade()&&level<=2)rows=rows.concat(EN_SENT.filter(s=>s.g===g-1));if(rows.length<1)rows=EN_SENT.filter(s=>s.g<=g);if(!rows.length)rows=EN_SENT.slice();const s=AI.pick(rows);return enq({op:"sentence",lvl:level,mode:"sent",ans:s.ans,gloss:s.he,em:S.hard?"":"💬",hePrompt:youngGrade()?s.he:"השלימו: "+s.he,showEn:s.gap,speak:s.full,choices:pickChoices(s.ans,s.opts||[]),tip:s.full+" = "+s.he});}
 AI.english=function(ctx){const cat=ctx.cat;const level=Math.max(1,Math.min(6,Math.round(ctx.level||1)));const g=gradeRank(S.enGrade||"34");const modes=enModes(cat);const mode=modes[(ctx.n||0)%modes.length];if(mode==="sent")return sentQuestion(g,level);const rows=wordPool(cat,g,level,ctx.habitat||"");const w=AI.pick(rows);if(mode==="spell")return spellQuestion(w,level,cat);if(mode==="sound")return soundQuestion(w,rows,cat,level);if(mode==="habitat")return habQuestion(w,cat,level);if(mode==="en2he")return trQuestion(w,rows,false,cat,level);if(mode==="he2en")return trQuestion(w,rows,true,cat,level);return picQuestion(w,rows,cat,level);};
 function challenge(subject,level){let sub=subject||"math";if(sub==="mix")sub=Math.random()<0.5?"en":"math";if(sub==="en"){const cat=AI.pickOp(EN_IDS);return AI.english({cat,level:Math.round(level)||1,n:Math.floor(Math.random()*8)}); }return AI.generate(["+","-","×"],{level:Math.round(level)||1,types:["choice"]});}
 function missAns(q){const opts=(q.choices||[]).filter(c=>!sameAns(c,q.ans));if(opts.length)return AI.pick(opts);return typeof q.ans==="number"?q.ans+AI.pick([1,-1,2,10]):q.ans;}
-function startEnglish(cat,opt){opt=opt||{};stopTimers();const meta=EN_CATS.find(c=>c.id===cat)||{name:cat==="food"?"מזנון האכלה":cat,em:"🔤"};G={mode:"english",world:0,cat,habitat:opt.habitat||"",starKey:opt.starKey||cat,n:0,correct:0,score:0,double:false,shield:false,frozen:0,ops:[cat],total:8};show("playScreen");$("bossRow").style.display="none";$("timerBox").style.display="none";const gn=(GRADES.find(x=>x.id===S.enGrade)||GRADES[0]).short;$("owlMsg").innerHTML=`${meta.em} <b>${esc(opt.title||meta.name)}</b> · ${gn}. בחרו מילה, או לחצו 🔊 כדי לשמוע.`;nextQ();}
-function renderZoo(){show("zooScreen");const g=GRADES.find(x=>x.id===S.enGrade)||GRADES[0];$("zooMap").innerHTML=`<div class="zooHead"><h2>🦁 גן החיות / <bdo dir="ltr">Zoo</bdo></h2><p class="pathNote">כל כלוב הוא שלב. ${esc(g.name)}. תמונה, קול, מקום מחיה ואיות — עם 🔊.</p>${gradeBar()}</div><div class="zooGrid">${ZOO.map((z,i)=>{const st=S.enStars[z.star]||0;return `<button type="button" class="pen ${z.food?"food":""}" data-pen="${z.id}"><span class="em">${z.em}</span><b>שלב ${i+1} · ${z.name}</b><small>${z.blurb}</small><small>${"⭐".repeat(st)}${"☆".repeat(3-st)}</small></button>`;}).join("")}</div><div class="row"><button type="button" class="btn" id="zooBack">המפה</button></div>`;bindGrades($("zooMap"),renderZoo);$("zooMap").querySelectorAll("[data-pen]").forEach(b=>b.onclick=()=>{const z=ZOO.find(x=>x.id===b.dataset.pen);sfx("click");if(z.food)startEnglish("food",{starKey:z.star,title:z.name});else startEnglish("zoo",{habitat:z.habitat,starKey:z.star,title:z.name});});$("zooBack").onclick=renderMap;}
+function startEnglish(cat,opt){opt=opt||{};stopTimers();const meta=EN_CATS.find(c=>c.id===cat)||{name:cat==="food"?"מזנון האכלה":cat,em:"🔤"};G={mode:"english",world:0,cat,habitat:opt.habitat||"",starKey:opt.starKey||cat,n:0,correct:0,score:0,double:false,shield:false,frozen:0,ops:[cat],total:8};show("playScreen");$("bossRow").style.display="none";$("timerBox").style.display="none";const gn=(GRADES.find(x=>x.id===S.enGrade)||GRADES[0]).short;$("owlMsg").innerHTML=youngGrade()?`${meta.em} <b>${esc(opt.title||meta.name)}</b>. בחרו. 🔊 שומע.`:`${meta.em} <b>${esc(opt.title||meta.name)}</b> · ${gn}. בחרו מילה, או לחצו 🔊 כדי לשמוע.`;nextQ();}
+function renderZoo(){show("zooScreen");const g=GRADES.find(x=>x.id===S.enGrade)||GRADES[0];$("zooMap").innerHTML=`<div class="zooHead"><h2>🦁 גן החיות / <bdo dir="ltr">Zoo</bdo></h2><p class="pathNote">כלוב = שלב. ${esc(g.name)}. 🔊 שומע.</p>${gradeBar()}${hardBtn()}</div><div class="zooGrid">${ZOO.map((z,i)=>{const st=S.enStars[z.star]||0;return `<button type="button" class="pen ${z.food?"food":""}" data-pen="${z.id}"><span class="em">${z.em}</span><b>שלב ${i+1} · ${z.name}</b><small>${z.blurb}</small><small>${"⭐".repeat(st)}${"☆".repeat(3-st)}</small></button>`;}).join("")}</div><div class="row"><button type="button" class="btn" id="zooBack">המפה</button></div>`;bindGrades($("zooMap"),renderZoo);bindHard(renderZoo);$("zooMap").querySelectorAll("[data-pen]").forEach(b=>b.onclick=()=>{const z=ZOO.find(x=>x.id===b.dataset.pen);sfx("click");if(z.food)startEnglish("food",{starKey:z.star,title:z.name});else startEnglish("zoo",{habitat:z.habitat,starKey:z.star,title:z.name});});$("zooBack").onclick=renderMap;}
 
 /* =========================================================
    5. חיבור ל-LLM אמיתי / REAL LLM API  —  מושבת כברירת מחדל (DISABLED)
@@ -834,6 +852,7 @@ async function getExplanation(q,given){const t=await llmAsk(`הילד ענה ${g
    ========================================================= */
 const $=id=>document.getElementById(id);
 function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active",s.id===id));
+  if(id!=="duelScreen"||!(typeof D!=="undefined"&&D&&D.mode==="share"))document.body.classList.remove("shareDuel");
   $("hdr").classList.toggle("on",!["startScreen","profileScreen"].includes(id));
   if(id!=="hubScreen"&&giftInt){clearInterval(giftInt);giftInt=null;}
   window.scrollTo(0,0);}
@@ -920,11 +939,11 @@ function renderMap(){show("mapScreen");
     <div class="row"><button class="btn green" data-l="${i}" ${L?"disabled":""}>▶ שלב</button><button class="btn pink" data-b="${i}" ${L||st<2?"disabled":""}>${w.boss.em} בוס</button></div></div>`;}).join("");
   const cats=EN_CATS.map(c=>{const st=c.zoo?Math.max(0,...ZOO.map(z=>S.enStars[z.star]||0)):(S.enStars[c.id]||0);const lv=S.skill[c.id]?S.skill[c.id].level:1;
     return `<button type="button" class="tile tEn" data-en="${c.id}"><span class="em">${c.em}</span>${c.name}<small>${c.blurb} · רמה ${lv}/6 · ${"⭐".repeat(st)}${"☆".repeat(3-st)}</small></button>`;}).join("");
-  $("map").innerHTML=worlds+`<div class="enWorld"><h2>🔤 עולם האנגלית</h2><p class="enLead">כיתות ג׳ עד י״ב. המילים באנגלית משמאל לימין, עם כפתור 🔊.</p>${gradeBar()}<div class="hub enHub">${cats}</div></div>`;
+  $("map").innerHTML=worlds+`<div class="enWorld"><h2>🔤 עולם האנגלית</h2><p class="enLead">בחרו כיתה. 🔊 שומע את המילה. מצב קשה מסתיר תמונות גם בחשבון.</p>${gradeBar()}${hardBtn()}<div class="hub enHub">${cats}</div></div>`;
   $("map").querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>startMode("level",+b.dataset.l));
   $("map").querySelectorAll("[data-b]").forEach(b=>b.onclick=()=>startMode("boss",+b.dataset.b));
   $("map").querySelectorAll("[data-en]").forEach(b=>b.onclick=()=>{sfx("click");if(b.dataset.en==="zoo")renderZoo();else startEnglish(b.dataset.en);});
-  bindGrades($("map"),renderMap);hud();}
+  bindGrades($("map"),renderMap);bindHard(renderMap);hud();}
 
 function startMode(mode,world=0){
   stopTimers();const W=WORLDS[world];
@@ -958,7 +977,7 @@ async function nextQ(){
   if(!G)return;
   G.q=q;G.tries=0;G.start=performance.now();G.answered=false;
   $("prog").style.width=G.mode==="boss"?((1-G.bossHp/G.bossMax)*100+"%"):G.mode==="lightning"?"100%":(G.n/G.total*100)+"%";
-  if(G.mode!=="lightning")$("modeInfo").textContent=G.mode==="english"?`${(GRADES.find(x=>x.id===S.enGrade)||GRADES[0]).short} · ${G.n+1}/${G.total}`:G.mode==="boss"?`🎯 פגיעות: ${G.correct}`:`${G.n+1}/${G.total}`;
+  if(G.mode!=="lightning")$("modeInfo").textContent=(G.mode==="english"?`${(GRADES.find(x=>x.id===S.enGrade)||GRADES[0]).short} · ${G.n+1}/${G.total}`:G.mode==="boss"?`🎯 פגיעות: ${G.correct}`:`${G.n+1}/${G.total}`)+(S.hard?" · מצב קשה":"");
   showQuestion($("qText"),q);
   $("explain").style.display="none";
   $("aiDebug").style.display=S.settings.showAI?"block":"none";
@@ -1008,7 +1027,7 @@ async function answer(v,btn){
     if(first&&S.avatar==="starling")pts+=1;
     if(first)pts+=feverBonus(S.streak);
     const dbl=G.double;if(dbl){pts*=2;G.double=false;}
-    S.points+=pts;G.score+=first?1:0;if(first&&S.streak%5===0)addCoins(5);
+    S.points+=pts;G.score+=first?1:0;if(first&&S.streak%5===0)addCoins(prize(5));
     if(first)onSolve(true);else syncFever();
     $("card").classList.toggle("fever",S.streak>=5);
     const ad=G.mode==="daily"&&!first?"":first?AI.update(q.op,true,secs):"";
@@ -1044,9 +1063,9 @@ function bossAttack(msg){
 }
 function endMode(){
   if(!G)return;clearInterval(tInt);const g=G;G=null;
-  if(g.mode==="english"){const meta=EN_CATS.find(c=>c.id===g.cat)||{em:"🔤",name:g.cat==="food"?"מזנון האכלה":g.cat};const st=g.correct>=7?3:g.correct>=5?2:g.correct>=3?1:0;S.enStars[g.starKey||g.cat]=Math.max(S.enStars[g.starKey||g.cat]||0,st);const coins=st*8+g.correct;addCoins(coins);save();checkAch();if(coins>=20)confetti();sfx("win");
+  if(g.mode==="english"){const meta=EN_CATS.find(c=>c.id===g.cat)||{em:"🔤",name:g.cat==="food"?"מזנון האכלה":g.cat};const st=g.correct>=7?3:g.correct>=5?2:g.correct>=3?1:0;S.enStars[g.starKey||g.cat]=Math.max(S.enStars[g.starKey||g.cat]||0,st);const coins=prize(st*8+g.correct);addCoins(coins);save();checkAch();if(coins>=20)confetti();sfx("win");
     const back=g.cat==="zoo"||g.cat==="food"?renderZoo:renderMap;
-    modal(`<span class="em">${meta.em}</span><h2>${esc(meta.name)}</h2><p>${g.correct} מתוך 8 נכונות בניסיון ראשון.</p><p>${"⭐".repeat(st)||"נמשיך לתרגל!"}</p><p><b>+${coins} 🪙</b></p>`,[{t:"שוב 🔁",cls:"green",f:()=>startEnglish(g.cat,{habitat:g.habitat,starKey:g.starKey})},{t:"המשך ➡️",f:back}]);return;}
+    modal(`<span class="em">${meta.em}</span><h2>${esc(meta.name)}</h2><p>${g.correct} מתוך 8 נכונות בניסיון ראשון.</p><p>${"⭐".repeat(st)||"נמשיך לתרגל!"}</p><p><b>+${coins} 🪙</b>${S.hard?" · בונוס מצב קשה":""}</p>`,[{t:"שוב 🔁",cls:"green",f:()=>startEnglish(g.cat,{habitat:g.habitat,starKey:g.starKey})},{t:"המשך ➡️",f:back}]);return;}
   const W=WORLDS[g.world];let html="",coins=0;
   if(g.mode==="level"){const st=g.correct>=7?3:g.correct>=5?2:g.correct>=3?1:0;S.worldStars[g.world]=Math.max(S.worldStars[g.world],st);coins=st*10;
     html=`<span class="em">${"⭐".repeat(st)||"💪"}</span><h2>סיימת את השלב!</h2><p>${g.correct} מתוך 8 נכונות בניסיון ראשון.</p><p>${st>=2?`הבוס ${W.boss.em} מחכה לך במפה!`:"צריך 2 כוכבים כדי לפגוש את הבוס. נסה שוב!"}</p>`;}
@@ -1058,7 +1077,7 @@ function endMode(){
     html=`<span class="em">⚡</span><h2>${g.score} תשובות נכונות!</h2><p>${rec?"🎉 שיא חדש!":"השיא שלך: "+S.lightningBest}</p>`;}
   if(g.mode==="daily"){const first=S.dailyDate!==today();coins=first?50:5;if(first){S.dailyDate=today();S.dailyCount++;}
     html=`<span class="em">📅</span><h2>האתגר היומי הושלם!</h2><p>${g.correct}/10 בניסיון ראשון.</p><p>${first?"פרס יומי: 50🪙":"כבר קיבלת פרס היום, חזור מחר!"}</p>`;}
-  addCoins(coins);html+=`<p><b>+${coins} 🪙</b></p>`;save();checkAch();
+  coins=prize(coins);addCoins(coins);html+=`<p><b>+${coins} 🪙</b>${S.hard&&coins?" · בונוס מצב קשה":""}</p>`;save();checkAch();
   if(coins>=20)confetti();sfx("win");
   const back=g.mode==="level"||g.mode==="boss"?renderMap:goHub;
   modal(html,[{t:"שוב 🔁",cls:"green",f:()=>startMode(g.mode,g.world)},{t:"המשך ➡️",f:back}]);
@@ -1181,7 +1200,7 @@ function arenaEnd(){
   let guard=0;while(alive().length>1&&guard++<200){const al=alive().filter(x=>x.bot);if(al.length<2)break;const a=AI.pick(al);
     if(Math.random()<a.acc){const t=A.f[pickTarget(a)];if(t){t.hp=Math.max(0,t.hp-15);a.score+=10;if(t.hp<=0){a.kills++;a.score+=25;}}}}
   const rank=[...A.f].sort((a,b)=>(b.hp>0)-(a.hp>0)||b.score-a.score);const pos=rank.indexOf(me)+1,win=pos===1&&me.hp>0;
-  const coins=[0,80,50,35,25,15,10,5][pos]||5;if(win){S.arenaWins++;ensureWeek();S.quests.duelOrArena=true;}addCoins(coins);save();checkAch();
+  let coins=[0,80,50,35,25,15,10,5][pos]||5;coins=prize(coins);if(win){S.arenaWins++;ensureWeek();S.quests.duelOrArena=true;}addCoins(coins);save();checkAch();
   if(win){confetti(50);sfx("win");}
   const w=rank[0];const res=A;A=null;
   modal(`<span class="em">${win?"🏆":w.em}</span><h2>${win?"ניצחת בזירה!":`${esc(w.name)} ניצח`}</h2>
@@ -1385,24 +1404,26 @@ function duelIntro(){if(D){clearInterval(D.int);(D.timers||[]).forEach(clearTime
   $("duelScreen").innerHTML=`<div class="panel" style="text-align:center"><h2>🤝 1 על 1</h2>
     <p>עונים על אותה שאלה. תשובה נכונה ומהירה מורידה חיים ליריב. מי שמוריד את היריב לאפס מנצח בסיבוב. <b>שני סיבובים</b> מנצחים בדו-קרב. הקושי מתאים את עצמו כמו בזירה, ואפשר להשתמש בכוחות.</p>
     ${subjectBar("duelSub")}
-    <div class="row"><button class="btn big pink" id="vsBot">🤖 נגד בוט</button><button class="btn big green" id="vsLocal">👫 שני שחקנים</button></div>
+    <div class="row"><button class="btn big pink" id="vsBot">🤖 נגד בוט</button><button class="btn big green" id="vsLocal">👫 קרב חיים</button></div>
+    <div class="row" style="margin-top:8px"><button class="btn big orange" id="vsShare">👫 שני שחקנים במכשיר אחד</button></div>
     <div class="row" style="margin-top:12px"><button class="btn" id="duelHome">תפריט</button></div></div>`;
   bindSubject("duelSub");
-  $("vsBot").onclick=()=>{sfx("click");duelPick();};$("vsLocal").onclick=()=>{sfx("click");duelSetup();};$("duelHome").onclick=goHub;}
+  $("vsBot").onclick=()=>{sfx("click");duelPick();};$("vsLocal").onclick=()=>{sfx("click");duelSetup("local");};$("vsShare").onclick=()=>{sfx("click");duelSetup("share");};$("duelHome").onclick=goHub;}
 function duelPick(){show("duelScreen");
   $("duelScreen").innerHTML=`<div class="panel" style="text-align:center"><h2>בחרו יריב</h2><div class="row">${BOTS.map((b,i)=>`<button class="btn" data-bot="${i}">${b.em} ${esc(b.name)}</button>`).join("")}<button class="btn orange" id="botRand">🎲 אקראי</button></div><div class="row" style="margin-top:12px"><button class="btn" id="duelBack">חזרה</button></div></div>`;
   $("duelScreen").querySelectorAll("[data-bot]").forEach(b=>b.onclick=()=>startDuel({mode:"bot",bot:BOTS[+b.dataset.bot]}));
   $("botRand").onclick=()=>startDuel({mode:"bot",bot:AI.pick(BOTS)});$("duelBack").onclick=duelIntro;}
-function duelSetup(){show("duelScreen");
-  $("duelScreen").innerHTML=`<div class="panel" style="text-align:center"><h2>שני שחקנים על המכשיר</h2>
-    <p>שחקן 1 בימין: ${heroHTML()} <b>${esc(S.name)}</b> · מקשים A S D F</p>
-    <p>שחקן 2 בשמאל · מקשים J K L ;</p>
+function duelSetup(mode){mode=mode==="share"?"share":"local";show("duelScreen");
+  $("duelScreen").innerHTML=`<div class="panel" style="text-align:center"><h2>${mode==="share"?"שני שחקנים במכשיר אחד":"שני שחקנים על המכשיר"}</h2>
+    ${mode==="share"?"<p>אותה שאלה לשני הצדדים. הלחיצה הנכונה הראשונה זוכה בסיבוב. הראשון ל-<b>10</b> מנצח. בלי שרת — הכול על המכשיר. בטלפון או בטאבלט החצי העליון פונה לשחקן שמול.</p>":"<p>שחקן 1 בימין: מקשים A S D F. שחקן 2 בשמאל: J K L ;</p>"}
+    ${subjectBar("shareSub")}
+    <p>שחקן 1: ${heroHTML()} <b>${esc(S.name)}</b></p>
     <input class="txt" id="p2name" maxlength="14" value="חבר" placeholder="שם השחקן השני">
     <div class="avatars" id="p2avs">${AVATARS.map((a,i)=>`<button data-i="${i}" class="${a===p2pick?"sel":""}">${a}</button>`).join("")}</div>
-    <div class="row"><button class="btn big pink" id="p2go">מתחילים!</button><button class="btn" id="duelBack">חזרה</button></div>
-    <p>בטלפון, הצד של שחקן 2 הפוך — יושבים אחד מול השני.</p></div>`;
-  $("p2avs").querySelectorAll("button").forEach(b=>b.onclick=()=>{p2pick=AVATARS[+b.dataset.i];duelSetup();});
-  $("p2go").onclick=()=>{const n=($("p2name").value||"").trim()||"חבר";startDuel({mode:"local",p2name:n,p2avatar:p2pick});};
+    <div class="row"><button class="btn big pink" id="p2go">מתחילים!</button><button class="btn" id="duelBack">חזרה</button></div></div>`;
+  bindSubject("shareSub");
+  $("p2avs").querySelectorAll("button").forEach(b=>b.onclick=()=>{p2pick=AVATARS[+b.dataset.i];duelSetup(mode);});
+  $("p2go").onclick=()=>{const n=($("p2name").value||"").trim()||"חבר";startDuel({mode,p2name:n,p2avatar:p2pick});};
   $("duelBack").onclick=duelIntro;}
 function startDuel(opts){if(D){clearInterval(D.int);(D.timers||[]).forEach(clearTimeout);D=null;}
   const subject=subjectPick||"math";const lvl=levelFor(subject);const pAcc=(AI.accuracy("+")+AI.accuracy("-")+AI.accuracy("×"))/3;const bot=opts.bot;
@@ -1412,23 +1433,24 @@ function startDuel(opts){if(D){clearInterval(D.int);(D.timers||[]).forEach(clear
     bot:opts.mode==="bot"?{quip:bot.quip,acc:Math.max(.35,Math.min(.95,bot.skill*.7+pAcc*.3)),spd:bot.speed}:null,
     p2kit:{hint:1,time:1,heal:1},timers:[],int:null,lvl,closing:false,log:[],double:[false,false],shield:[false,false]};
   S.duelGames++;save();show("duelScreen");duelNext();}
-function duelNext(){if(!D)return;if(D.wins[0]>=2||D.wins[1]>=2)return duelEnd();
+function duelNext(){if(!D)return;const goal=D.mode==="share"?10:2;if(D.wins[0]>=goal||D.wins[1]>=goal)return duelEnd();
   D.round++;D.answered=[false,false];D.gotIt=[false,false];D.draft=["",""];D.closing=false;D.qStart=performance.now();D.frozen=0;
   const q=challenge(D.subject,Math.round(D.lvl+D.round/4));D.q=q;D.choices=q.choices||AI.choices(q);
   D.maxT=D.tLeft=Math.max(8,13-D.round*0.25)*timeMul();
   if(D.bot){const diff=q.op==="×"?1.25:1+q.lvl*0.06;const base=(2.1+Math.random()*4.2)*diff/D.bot.spd*(1.12-Math.min(D.lvl,6)*0.03);D.bot.plannedT=Math.max(1.15,Math.min(6.2,base));D.bot.willOk=Math.random()<D.bot.acc;}
   paintDuel();clearInterval(D.int);D.int=setInterval(duelTick,100);}
-function paintDuel(){const q=D.q;const keys=[["A","S","D","F"],["J","K","L",";"]];
-  const side=i=>{const mine=i===0;const face=mine?heroHTML():(D.mode==="local"?heroHTML(D.avs[1],false):D.avs[1]);
+function paintDuel(){const q=D.q;const keys=[["A","S","D","F"],["J","K","L",";"]];const share=D.mode==="share";
+  const side=i=>{const mine=i===0;const face=mine?heroHTML():(D.mode!=="bot"?heroHTML(D.avs[1],false):D.avs[1]);
     return `<div class="duelSide p${i+1}" id="duelSide${i}"><div class="who"><span class="av">${face}</span> <b>${esc(D.names[i])}</b>${mine&&S.equipped.title?` <small class="titleTag">${esc(titleName())}</small>`:""}</div>
-      <div class="hp ${hpCls(D.hp[i]/D.maxHp*100)}"><div id="dhp${i}" style="width:${D.hp[i]/D.maxHp*100}%"></div></div><div id="dhpt${i}">${D.hp[i]} ❤️</div>
+      ${share?`<div class="bigScore" id="dhpt${i}">${D.wins[i]} / 10</div>`:`<div class="hp ${hpCls(D.hp[i]/D.maxHp*100)}"><div id="dhp${i}" style="width:${D.hp[i]/D.maxHp*100}%"></div></div><div id="dhpt${i}">${D.hp[i]} ❤️</div>`}
       <div class="duelQ" id="dQ${i}"></div>
-      <div class="choices mini" id="dChoices${i}">${D.choices.map((c,n)=>`<button type="button" data-side="${i}" data-v="${escAttr(c)}" ${q.lang==="en"&&q.choiceDir!=="rtl"?'class="en" dir="ltr"':""}>${q.lang==="en"?esc(String(c)):c}<span class="keyHint">${keys[i][n]}</span></button>`).join("")}</div>
-      ${q.lang==="en"?"":`<div class="padOut" id="dDraft${i}"></div><div class="pad">${["1","2","3","4","5","6","7","8","9","⌫","0","✔️"].map(k=>`<button type="button" data-side="${i}" data-pad="${k}">${k}</button>`).join("")}</div>`}
-      <div class="pups" id="dPups${i}"></div></div>`;};
-  $("duelScreen").innerHTML=`<div style="text-align:center;font-weight:800;margin-bottom:6px">1 על 1 · עד 2 ניצחונות · סיבוב ${D.bout} · אתה ${D.wins[0]} — יריב ${D.wins[1]}${S.streak>=5?" · 🔥 רצף "+S.streak:""}</div>
+      <div class="choices mini" id="dChoices${i}">${D.choices.map((c,n)=>`<button type="button" data-side="${i}" data-v="${escAttr(c)}" ${q.lang==="en"&&q.choiceDir!=="rtl"?'class="en" dir="ltr"':""}>${q.lang==="en"?esc(String(c)):c}<span class="keyHint">${keys[i][n]||""}</span></button>`).join("")}</div>
+      ${q.lang==="en"||share?"":`<div class="padOut" id="dDraft${i}"></div><div class="pad">${["1","2","3","4","5","6","7","8","9","⌫","0","✔️"].map(k=>`<button type="button" data-side="${i}" data-pad="${k}">${k}</button>`).join("")}</div>`}
+      ${share?"":`<div class="pups" id="dPups${i}"></div>`}</div>`;};
+  document.body.classList.toggle("shareDuel",share);
+  $("duelScreen").innerHTML=`<div style="text-align:center;font-weight:800;margin-bottom:6px">${share?`שני שחקנים במכשיר אחד · ראשון ל-10 · ${D.wins[0]} — ${D.wins[1]}`:`1 על 1 · עד 2 ניצחונות · סיבוב ${D.bout} · אתה ${D.wins[0]} — יריב ${D.wins[1]}${S.streak>=5?" · 🔥 רצף "+S.streak:""}`}</div>
     <div class="timer"><div id="duelTimer" style="width:100%"></div></div>
-    <div class="duelSplit">${side(0)}<div class="duelMid"><div id="duelLog"></div><small>ימין A S D F · שמאל J K L ;</small></div>${side(1)}</div>`;
+    <div class="duelSplit${share?" face":""}">${side(0)}<div class="duelMid"><div id="duelLog"></div><small>${share?"התשובה הנכונה הראשונה זוכה בסיבוב":"ימין A S D F · שמאל J K L ;"}</small></div>${side(1)}</div>`;
   $("duelScreen").querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>duelSubmit(+b.dataset.side,readChoice(D.q,b.dataset.v),b));
   $("duelScreen").querySelectorAll("[data-pad]").forEach(b=>b.onclick=()=>padPress(+b.dataset.side,b.dataset.pad));
   showQuestion($("dQ0"),q);showQuestion($("dQ1"),q);
@@ -1454,10 +1476,11 @@ function padPress(side,k){if(!D||D.closing||D.answered[side])return;if(k==="⌫"
 function duelTick(){if(!D||D.closing)return;if(D.frozen>0)D.frozen-=.1;else D.tLeft-=.1;const bar=$("duelTimer");if(bar)bar.style.width=Math.max(0,D.tLeft/D.maxT*100)+"%";
   const elapsed=(performance.now()-D.qStart)/1000;
   if(D.bot&&!D.answered[1]&&D.frozen<=0&&elapsed>=D.bot.plannedT){const v=D.bot.willOk?D.q.ans:missAns(D.q);duelSubmit(1,v,null);}
-  if(D.tLeft<=0)finishQuestion("time");}
+  if(D.tLeft<=0)finishQuestion(D.mode==="share"?"share":"time");}
 function duelDamage(t,first){return Math.max(8,Math.round(12+Math.max(0,6-t)*1.6+(first?7:0)));}
 function duelSubmit(side,value,btn){if(!D||D.closing||D.answered[side])return;const q=D.q;const t=(performance.now()-D.qStart)/1000;D.answered[side]=true;const ok=sameAns(value,q.ans);
   if(side===0){const note=AI.update(q.op,ok,t);if(ok){S.streak++;S.totalCorrect++;if(t<4)S.fastAnswers++;S.bestStreak=Math.max(S.bestStreak,S.streak);let pts=10+Math.min(S.streak,10)+(t<5?5:0)+(S.avatar==="starling"?1:0)+feverBonus(S.streak);S.points+=pts;onSolve(true);if(note)toast(note,1600);}else{S.streak=0;S.totalWrong++;syncFever();}save();hud();checkAch();}
+  if(D.mode==="share"){if(!ok){if(btn)btn.classList.add("wrong");sfx("bad");duelLog(D.names[side]+" טעה");disableSide(side);if(D.answered[0]&&D.answered[1]&&!D.gotIt[0]&&!D.gotIt[1])finishQuestion("share");return;}if(D.gotIt[0]||D.gotIt[1]){duelLog(D.names[side]+" איחר");disableSide(side);return;}D.gotIt[side]=true;D.wins[side]++;if(btn)btn.classList.add("right");sfx("good");duelLog(D.names[side]+" זכה בסיבוב");finishQuestion("share");return;}
   if(!ok){if(btn)btn.classList.add("wrong");if(side===0)sfx("bad");duelLog(D.names[side]+" טעה");disableSide(side);if(D.answered[0]&&D.answered[1])finishQuestion("done");return;}
   const first=!D.gotIt[0]&&!D.gotIt[1];D.gotIt[side]=true;if(btn)btn.classList.add("right");if(side===0)sfx("good");
   if(D.mode==="local"&&!first){duelLog(D.names[side]+" נכון, אבל מאוחר");disableSide(side);return;}
@@ -1470,21 +1493,22 @@ function duelSubmit(side,value,btn){if(!D||D.closing||D.answered[side])return;co
 function disableSide(side){document.querySelectorAll(`#duelScreen [data-side="${side}"]`).forEach(b=>{if(b.tagName==="BUTTON")b.disabled=true;});}
 function finishQuestion(reason){if(!D||D.closing)return;D.closing=true;clearInterval(D.int);D.int=null;
   if(reason==="time"){if(!D.answered[0])D.hp[0]=Math.max(0,D.hp[0]-6);if(!D.answered[1])D.hp[1]=Math.max(0,D.hp[1]-6);duelLog("נגמר הזמן");paintHP();}
+  if(reason==="share"&&D.tLeft<=0&&!D.gotIt[0]&&!D.gotIt[1])duelLog("נגמר הזמן");
   document.querySelectorAll("#duelScreen [data-v]").forEach(b=>{b.disabled=true;if(sameAns(b.dataset.v,D.q.ans))b.classList.add("right");});
   const self=D;self.timers.push(setTimeout(()=>settleBout(self),650));}
 function koWinner(){const a=D.hp[0]<=0,b=D.hp[1]<=0;if(a&&b)return D.score[0]>=D.score[1]?0:1;if(b)return 0;if(a)return 1;return -1;}
-function settleBout(self){if(D!==self)return;const w=koWinner();if(w>=0){D.wins[w]++;duelLog(D.names[w]+" ניצח בסיבוב");
+function settleBout(self){if(D!==self)return;if(D.mode==="share"){if(D.wins[0]>=10||D.wins[1]>=10)return duelEnd();self.timers.push(setTimeout(()=>{if(D===self)duelNext();},450));return;}const w=koWinner();if(w>=0){D.wins[w]++;duelLog(D.names[w]+" ניצח בסיבוב");
   if(D.wins[0]>=2||D.wins[1]>=2)return duelEnd();D.bout++;D.hp=[D.maxHp,D.maxHp];toast("סיבוב חדש! "+D.wins[0]+"–"+D.wins[1]);
   self.timers.push(setTimeout(()=>{if(D===self)duelNext();},700));return;}duelNext();}
-function duelEnd(){if(!D)return;clearInterval(D.int);(D.timers||[]).forEach(clearTimeout);const d=D;D=null;ensureWeek();
+function duelEnd(){if(!D)return;clearInterval(D.int);(D.timers||[]).forEach(clearTimeout);document.body.classList.remove("shareDuel");const d=D;D=null;ensureWeek();
   const p1=d.wins[0]>d.wins[1];if(p1){S.duelWins++;S.quests.duelOrArena=true;}
-  const coins=d.mode==="bot"?(p1?45:12):(p1?25:10);addCoins(coins);save();checkAch();if(p1){confetti(36);sfx("win");}
-  modal(`<span class="em">${p1?"🏆":"🤝"}</span><h2>${p1?"ניצחת בדו-קרב!":esc(d.names[1])+" ניצח"}</h2><p>אתה ${d.wins[0]} — יריב ${d.wins[1]}</p><p><b>+${coins} 🪙</b></p><p>${p1?"כל הכבוד, התרגול השתלם!":"עוד סיבוב ואתם שם. טעויות עוזרות ללמוד."}</p>`,
+  const coins=prize(d.mode==="bot"?(p1?45:12):d.mode==="share"?(p1?30:12):(p1?25:10));addCoins(coins);save();checkAch();if(p1){confetti(36);sfx("win");}
+  modal(`<span class="em">${p1?"🏆":"🤝"}</span><h2>${d.mode==="share"?(p1?"ניצחת, ראשון ל-10!":esc(d.names[1])+" הגיע ל-10"):(p1?"ניצחת בדו-קרב!":esc(d.names[1])+" ניצח")}</h2><p>${d.mode==="share"?esc(d.names[0])+" "+d.wins[0]+" — "+esc(d.names[1])+" "+d.wins[1]:"אתה "+d.wins[0]+" — יריב "+d.wins[1]}</p><p><b>+${coins} 🪙</b>${S.hard?" · בונוס מצב קשה":""}</p><p>${p1?"כל הכבוד, התרגול השתלם!":"עוד משחק ואתם שם."}</p>`,
     [{t:"עוד דו-קרב",cls:"pink",f:duelIntro},{t:"תפריט",f:goHub}]);}
 addEventListener("keydown",e=>{if(!D||D.closing||e.repeat)return;if(e.target&&(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA"))return;
   const P1=["KeyA","KeyS","KeyD","KeyF"],P2=["KeyJ","KeyK","KeyL","Semicolon"];let side=-1,idx=-1;
   if(P1.includes(e.code)){side=0;idx=P1.indexOf(e.code);}if(P2.includes(e.code)){side=1;idx=P2.indexOf(e.code);}
-  if(side<0||!D.choices||D.answered[side])return;e.preventDefault();const value=D.choices[idx];
+  if(side<0||!D.choices||D.answered[side]||idx>=D.choices.length)return;e.preventDefault();const value=D.choices[idx];
   const btn=document.querySelector(`#dChoices${side} [data-v="${value}"]`);duelSubmit(side,value,btn);});
 
 function renderBadges(){show("badgesScreen");$("badgeGrid").innerHTML=ACH.map(b=>`<div class="item ${S.badges.includes(b.id)?"":"off"}"><b class="em">${b.em}</b><b>${b.name}</b><small>${b.d}</small></div>`).join("")+
@@ -1504,12 +1528,14 @@ function renderSettings(){show("settingsScreen");const st=S.settings;
    <div class="switch">🎵 מוזיקה ${tg("music","פועל","כבוי")}</div>
    <div class="switch">🤖 הצג "מוח ה-AI" ${tg("showAI","מוצג","מוסתר")}</div>
    <div class="switch">🔊 הקראה אוטומטית באנגלית ${tg("speak","פועל","כבוי")}</div>
+   <div class="switch">🙈 מצב קשה (בלי תמונות, יותר מטבעות) <button class="btn ${S.hard?"pink":""}" id="hardSet">${S.hard?"פעיל":"כבוי"}</button></div>
    <div class="switch">⏱️ מהירות שעון <span>${["easy","normal","hard"].map(v=>`<button class="btn ${st.timer===v?"orange":""}" data-tm="${v}">${{easy:"איטי",normal:"רגיל",hard:"מהיר"}[v]}</button>`).join(" ")}</span></div>
    <div class="switch">👤 שם ודמות <button class="btn" id="editProf">ערוך</button></div>
    <div class="switch">🗑️ איפוס התקדמות <button class="btn pink" id="resetAll">אפס</button></div>
    <div class="row" style="margin-top:14px"><button class="btn green" id="setBack">חזרה</button></div>`;
   $("settingsBox").querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>{const k=b.dataset.t;st[k]=!st[k];if(k==="music")music(st.music);save();hud();renderSettings();});
   $("settingsBox").querySelectorAll("[data-tm]").forEach(b=>b.onclick=()=>{st.timer=b.dataset.tm;save();renderSettings();});
+  $("hardSet").onclick=()=>{S.hard=!S.hard;save();sfx("click");renderSettings();};
   $("editProf").onclick=showProfile;$("setBack").onclick=()=>S.name?goHub():show("startScreen");
   $("resetAll").onclick=()=>modal(`<span class="em">⚠️</span><h2>לאפס הכל?</h2><p>כל הנקודות, המטבעות וההישגים יימחקו.</p>`,
     [{t:"כן, אפס",cls:"pink",f:()=>{localStorage.removeItem("mathAdv2");load();show("startScreen");}},{t:"ביטול"}]);}
