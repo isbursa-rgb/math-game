@@ -465,6 +465,39 @@ header{background:rgba(255,255,255,.82);border-bottom:1px solid rgba(255,255,255
   .tile .em,.splashOwl,.owl .lid,.splashBar i{animation:none}
   .lvlBanner.on{opacity:1;transform:translateX(-50%)}
 }
+/* Page background only. UI colors above are unchanged. */
+body{
+  background-color:#0f1a3d;
+  background-image:
+    radial-gradient(circle at 18% 22%, rgba(255,204,41,.9) 0 1.5px, transparent 2.2px),
+    radial-gradient(circle at 74% 14%, rgba(25,211,255,.95) 0 1.6px, transparent 2.4px),
+    radial-gradient(circle at 62% 36%, rgba(166,255,47,.9) 0 1.4px, transparent 2.2px),
+    radial-gradient(circle at 32% 48%, rgba(255,47,179,.85) 0 1.5px, transparent 2.3px),
+    radial-gradient(circle at 88% 58%, rgba(255,204,41,.75) 0 1.3px, transparent 2px),
+    radial-gradient(circle at 46% 18%, rgba(255,255,255,.8) 0 1.2px, transparent 2px),
+    linear-gradient(118deg, transparent 0 38%, rgba(25,211,255,.16) 42%, transparent 47%),
+    linear-gradient(64deg, transparent 0 58%, rgba(255,47,179,.13) 63%, transparent 68%),
+    radial-gradient(460px 320px at 12% 8%, rgba(255,47,179,.28), transparent 70%),
+    radial-gradient(540px 380px at 92% 0%, rgba(25,211,255,.24), transparent 68%),
+    radial-gradient(420px 300px at 78% 42%, rgba(166,255,47,.12), transparent 70%),
+    radial-gradient(700px 480px at 50% 100%, rgba(75,31,168,.55), transparent 72%),
+    linear-gradient(180deg, #2a0f5c 0%, #1b2f7a 46%, #0f1a3d 100%);
+  background-repeat:no-repeat;
+  background-attachment:fixed;
+  background-size:auto;
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 700'%3E%3Cg opacity='.5'%3E%3Crect x='54' y='64' width='34' height='34' fill='%2319d3ff' transform='rotate(12 71 81)'/%3E%3Crect x='880' y='36' width='26' height='26' fill='%23ff2fb3' transform='rotate(-8 893 49)'/%3E%3Crect x='730' y='150' width='16' height='16' fill='%23a6ff2f'/%3E%3Crect x='150' y='230' width='24' height='24' fill='%234b1fa8' stroke='%2319d3ff' stroke-width='3'/%3E%3Crect x='800' y='280' width='30' height='30' fill='%231b2f7a' stroke='%23ffcc29' stroke-width='3' transform='rotate(9 815 295)'/%3E%3Crect x='430' y='48' width='14' height='14' fill='%23ffcc29'/%3E%3C/g%3E%3Ccircle cx='210' cy='110' r='2.2' fill='%23ffcc29'/%3E%3Ccircle cx='520' cy='70' r='1.5' fill='%23fff'/%3E%3Ccircle cx='910' cy='170' r='2' fill='%23a6ff2f'/%3E%3Ccircle cx='300' cy='190' r='1.4' fill='%2319d3ff'/%3E%3Ccircle cx='640' cy='220' r='2' fill='%23ff2fb3'/%3E%3Ccircle cx='120' cy='380' r='1.6' fill='%23fff'/%3E%3Ccircle cx='760' cy='400' r='1.8' fill='%23ffcc29'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='64' shape-rendering='crispEdges'%3E%3Crect width='96' height='64' fill='%234a2c14'/%3E%3Crect width='15' height='15' fill='%235dba3a'/%3E%3Crect x='16' width='15' height='15' fill='%233f9a2a'/%3E%3Crect x='32' width='15' height='15' fill='%237ed94a'/%3E%3Crect x='48' width='15' height='15' fill='%232f8a22'/%3E%3Crect x='64' width='15' height='15' fill='%234caf33'/%3E%3Crect x='80' width='15' height='15' fill='%236bc83a'/%3E%3Crect y='16' width='15' height='15' fill='%238d5a2b'/%3E%3Crect x='16' y='16' width='15' height='15' fill='%236e4120'/%3E%3Crect x='32' y='16' width='15' height='15' fill='%23a56b3a'/%3E%3Crect x='48' y='16' width='15' height='15' fill='%237a4a24'/%3E%3Crect x='64' y='16' width='15' height='15' fill='%23915e30'/%3E%3Crect x='80' y='16' width='15' height='15' fill='%236a3d1c'/%3E%3Crect y='32' width='15' height='15' fill='%237a4a24'/%3E%3Crect x='16' y='32' width='15' height='15' fill='%23915e30'/%3E%3Crect x='32' y='32' width='15' height='15' fill='%236e4120'/%3E%3Crect x='48' y='32' width='15' height='15' fill='%238d5a2b'/%3E%3Crect x='64' y='32' width='15' height='15' fill='%236a3d1c'/%3E%3Crect x='80' y='32' width='15' height='15' fill='%23a56b3a'/%3E%3Crect y='48' width='15' height='15' fill='%238e959e'/%3E%3Crect x='16' y='48' width='15' height='15' fill='%236d747d'/%3E%3Crect x='32' y='48' width='15' height='15' fill='%23b0b6be'/%3E%3Crect x='48' y='48' width='15' height='15' fill='%237a818a'/%3E%3Crect x='64' y='48' width='15' height='15' fill='%23939aa3'/%3E%3Crect x='80' y='48' width='15' height='15' fill='%23646b74'/%3E%3C/svg%3E");
+  background-repeat:no-repeat, repeat-x;
+  background-position:center, left bottom;
+  background-size:cover, 96px 64px;
+}
 </style>
 </head>
 <body>
@@ -1393,8 +1426,9 @@ const today=()=>new Date().toISOString().slice(0,10);
   document.addEventListener("visibilitychange",()=>{hidden=document.hidden;});
   const sym=["+","−","×","=","★","●"];const count=innerWidth<700?12:18;
   for(let i=0;i<count;i++)P.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,v:.15+Math.random()*.4,s:14+Math.random()*18,t:sym[i%6],a:Math.random()*6,h:Math.random()*360});
-  let frame=0;(function f(){requestAnimationFrame(f);if(hidden||++frame%2)return;x.clearRect(0,0,c.width,c.height);P.forEach(p=>{p.y-=p.v;p.a+=.02;if(p.y<-30){p.y=c.height+30;p.x=Math.random()*c.width;}
-    x.globalAlpha=.22;x.fillStyle=`hsl(${p.h},80%,62%)`;x.font=`bold ${p.s}px sans-serif`;x.fillText(p.t,p.x+Math.sin(p.a)*16,p.y);});})();})();
+  const neon=["#19d3ff","#ff2fb3","#a6ff2f","#ffcc29","#d7b4ff"];
+  let frame=0;(function f(){requestAnimationFrame(f);if(hidden||++frame%2)return;x.clearRect(0,0,c.width,c.height);P.forEach((p,i)=>{p.y-=p.v;p.a+=.02;if(p.y<-30){p.y=c.height+30;p.x=Math.random()*c.width;}
+    x.globalAlpha=.4;x.fillStyle=neon[i%neon.length];x.font=`bold ${p.s}px sans-serif`;x.fillText(p.t,p.x+Math.sin(p.a)*16,p.y);});})();})();
 
 /* =========================================================
    7. ניווט / Navigation (start → profile → hub)
