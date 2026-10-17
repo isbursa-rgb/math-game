@@ -1,5 +1,5 @@
 /* Offline cache for the math game. Paths are relative to this script. */
-const CACHE = "math-game-v6";
+const CACHE = "math-game-v7";
 const ASSETS = [
   "./",
   "./index.html",
