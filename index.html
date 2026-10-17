@@ -86,7 +86,8 @@ input.txt{font-size:1.3rem;padding:10px 14px;border-radius:14px;border:3px solid
 .t7{background:linear-gradient(135deg,#8e2de2,#4a00e0)}.t8{background:linear-gradient(135deg,#636fa4,#e8cbc0)}
 
 /* ===== מפה / Map ===== */
-.map{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.map{display:block}
+.worlds{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
 .world{border-radius:26px;padding:16px;text-align:center;color:#fff;font-size:1.15rem;box-shadow:0 6px 0 #0003;position:relative;overflow:hidden}
 .world .em{font-size:3.2rem;display:block}
 .world.locked{filter:grayscale(1);opacity:.6}
@@ -275,10 +276,13 @@ button{min-height:44px;touch-action:manipulation;-webkit-tap-highlight-color:tra
 .tWheel{background:linear-gradient(135deg,#ffd23f,#ff8c1a)}
 .giftBanner{cursor:pointer}
 button.giftBanner{border:0;width:100%;font:inherit;color:inherit}
-.enWorld{grid-column:1/-1;background:linear-gradient(180deg,#fff,#f4ecff);border-radius:24px;padding:12px 12px 16px;margin-top:8px}
+.enWorld{display:block;width:100%;margin-top:16px;background:linear-gradient(180deg,#fff,#f4ecff);border-radius:24px;padding:12px 12px 16px;scroll-margin-top:72px}
+.enHub{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .enLead,.pathNote{font-weight:800;margin:0 0 8px}
 .grades,.subj{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:8px 0}
-.tEn{background:linear-gradient(135deg,#5b8def,#7a4de0);min-height:96px}
+.tEn{background:linear-gradient(135deg,#5b8def,#7a4de0)}
+.enHub .tEn{min-height:96px}
+#hubScreen .tile.tEn{min-height:130px}
 .zooMap{background:radial-gradient(circle at 12% 18%,#e7ffc8 0 14%,transparent 15%),linear-gradient(#c6ec9a,#67b86e);border-radius:28px;padding:14px;box-shadow:inset 0 0 0 6px #8fd18a}
 .zooGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
 .pen{background:rgba(255,255,255,.9);border:4px dashed #3d7a45;border-radius:20px;padding:12px;text-align:center;font-weight:800;color:#245c28;min-height:124px}
@@ -299,8 +303,8 @@ button.giftBanner{border:0;width:100%;font:inherit;color:inherit}
 @media(min-width:1000px){
   main{margin-top:8px}
   .companion{margin:2px 0 6px}
-  .hub{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-  .tile{min-height:100px;padding:10px 8px}
+  #hubScreen>.hub{grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+  #hubScreen>.hub .tile{min-height:100px;padding:10px 8px}
   .tile .em{font-size:2.2rem}
   .giftBanner{margin:4px 0 8px;padding:8px 12px}
 }
@@ -391,6 +395,7 @@ body.shareDuel header{padding:4px 10px}
     <button type="button" id="giftBanner" class="giftBanner"></button>
     <div class="hub">
       <button class="tile t1" data-go="map"><span class="em">🗺️</span>הרפתקה<small>עולמות ובוסים</small></button>
+      <button class="tile tEn" data-go="english"><span class="em">🔤</span>עולם האנגלית<small>מילים, גן חיות ומשפטים</small></button>
       <button class="tile t2" data-go="arena"><span class="em">⚔️</span>זירת קרב<small>כולם נגד כולם</small></button>
       <button class="tile t9" data-go="duel"><span class="em">🤝</span>1 על 1<small>נגד בוט או חבר</small></button>
       <button class="tile tWheel" data-go="wheel"><span class="em">🎡</span>גלגל מזל<small id="wheelTag">סיבוב חינם</small></button>
@@ -545,26 +550,88 @@ const DEFAULT={name:"",avatar:"🧒",coins:30,points:0,streak:0,bestStreak:0,tot
   owned:{frames:["none"],arenas:["classic"],confetti:["classic"],attacks:["spark"],titles:[""],outfits:["none"],hats:["none"],colors:["none"],accessories:["none"],avatars:[]},
   skill:{"+":{level:1,acc:[],times:[],n:0,ok:0},"-":{level:1,acc:[],times:[],n:0,ok:0},"×":{level:1,acc:[],times:[],n:0,ok:0}}};
 let S;
+function asObj(v){return v&&typeof v==="object"&&!Array.isArray(v)?v:null;}
+function migrateSave(){
+  if(!S||typeof S!=="object")return;
+  const n=v=>{const x=Number(v);return Number.isFinite(x)?x:0;};
+  if(typeof S.name!=="string")S.name="";
+  S.coins=Math.max(0,Math.round(n(S.coins)));
+  S.points=Math.max(0,Math.round(n(S.points)));
+  S.streak=Math.max(0,Math.round(n(S.streak)));
+  S.bestStreak=Math.max(0,Math.round(n(S.bestStreak)));
+  S.totalCorrect=Math.max(0,Math.round(n(S.totalCorrect)));
+  S.totalWrong=Math.max(0,Math.round(n(S.totalWrong)));
+  const worldN=typeof WORLDS!=="undefined"?WORLDS.length:4;
+  S.unlocked=Math.max(1,Math.min(worldN,Math.round(n(S.unlocked)||1)));
+  const stars=Array.isArray(S.worldStars)?S.worldStars:[];
+  S.worldStars=Array.from({length:worldN},(_,i)=>Math.max(0,Math.min(3,Math.round(n(stars[i])))));
+  const bosses=Array.isArray(S.bossWon)?S.bossWon:[];
+  S.bossWon=Array.from({length:worldN},(_,i)=>!!bosses[i]);
+  if(!Array.isArray(S.badges))S.badges=[];
+  if(!Array.isArray(S.stickers))S.stickers=[];
+  if(!Array.isArray(S.cards))S.cards=[];
+  if(!Array.isArray(S.skins)||!S.skins.length)S.skins=["🦉"];
+  S.skins=S.skins.filter(x=>typeof x==="string");
+  if(!S.skins.includes("🦉"))S.skins.unshift("🦉");
+  if(typeof S.skin!=="string"||!S.skins.includes(S.skin))S.skin=S.skins[0];
+  if(!asObj(S.enStars))S.enStars={};
+  Object.keys(S.enStars).forEach(k=>{S.enStars[k]=Math.max(0,Math.min(3,Math.round(n(S.enStars[k]))));});
+  if(typeof GRADES==="undefined"||!GRADES.some(g=>g.id===S.enGrade))S.enGrade="34";
+  if(typeof S.hard!=="boolean")S.hard=false;
+  if(typeof S.freeWheel!=="string")S.freeWheel="";
+  if(typeof S.freeBox!=="string")S.freeBox="";
+  S.settings=Object.assign({sound:true,music:false,timer:"normal",showAI:true,speak:false},asObj(S.settings)||{});
+  if(!["easy","normal","hard"].includes(S.settings.timer))S.settings.timer="normal";
+  S.pups=Object.assign({hint:2,freeze:1,shield:1,double:1,time:1,heal:1,steal:0},asObj(S.pups)||{});
+  Object.keys(S.pups).forEach(k=>{S.pups[k]=Math.max(0,Math.round(n(S.pups[k])));});
+  S.pet=Object.assign({stage:0},asObj(S.pet)||{});
+  S.pet.stage=Math.max(0,Math.round(n(S.pet.stage)));
+  S.quests=Object.assign({week:"",solve:0,streakHit:false,duelOrArena:false,claimed:[false,false,false]},asObj(S.quests)||{});
+  if(!Array.isArray(S.quests.claimed)||S.quests.claimed.length!==3)S.quests.claimed=[false,false,false];
+  S.equipped=Object.assign({frame:"none",arena:"classic",confetti:"classic",attack:"spark",title:"",outfit:"none",hat:"none",color:"none",accessory:"none"},asObj(S.equipped)||{});
+  const ownedBase={frames:["none"],arenas:["classic"],confetti:["classic"],attacks:["spark"],titles:[""],outfits:["none"],hats:["none"],colors:["none"],accessories:["none"],avatars:[]};
+  const prev=asObj(S.owned)||{};
+  S.owned={};
+  Object.keys(ownedBase).forEach(k=>{
+    const extra=Array.isArray(prev[k])?prev[k].filter(x=>typeof x==="string"):[];
+    S.owned[k]=Array.from(new Set(ownedBase[k].concat(extra)));
+  });
+  const rawSkill=asObj(S.skill)||{};
+  S.skill={};
+  const ops=["+","-","×"].concat(typeof EN_IDS!=="undefined"?EN_IDS:[]);
+  ops.forEach(op=>{
+    const src=asObj(rawSkill[op])||{};
+    const k=Object.assign({level:1,acc:[],times:[],n:0,ok:0},src);
+    k.level=Math.max(1,Math.min(6,Math.round(n(k.level)||1)));
+    k.acc=Array.isArray(k.acc)?k.acc:[];
+    k.times=Array.isArray(k.times)?k.times:[];
+    k.n=Math.max(0,Math.round(n(k.n)));
+    k.ok=Math.max(0,Math.round(n(k.ok)));
+    S.skill[op]=k;
+  });
+}
 function load(){
   let d={};try{d=JSON.parse(localStorage.getItem("mathAdv2")||"{}");}catch(e){}
+  if(!asObj(d))d={};
   S=Object.assign(structuredClone(DEFAULT),d);
-  S.settings=Object.assign(structuredClone(DEFAULT.settings),d.settings||{});
-  S.pups=Object.assign(structuredClone(DEFAULT.pups),d.pups||{});
+  S.settings=Object.assign(structuredClone(DEFAULT.settings),asObj(d.settings)||{});
+  S.pups=Object.assign(structuredClone(DEFAULT.pups),asObj(d.pups)||{});
   S.skill=structuredClone(DEFAULT.skill);
-  if(!Array.isArray(S.stickers))S.stickers=[];if(!S.enStars||typeof S.enStars!=="object"||Array.isArray(S.enStars))S.enStars={};if(typeof S.hard!=="boolean")S.hard=false;if(!GRADES.some(g=>g.id===S.enGrade))S.enGrade="34";
-  for(const op of ["+","-","×"].concat(typeof EN_IDS!=="undefined"?EN_IDS:[])){const base=DEFAULT.skill[op]||{level:1,acc:[],times:[],n:0,ok:0};S.skill[op]=Object.assign(structuredClone(base),(d.skill&&d.skill[op])||{});}
-  S.equipped=Object.assign(structuredClone(DEFAULT.equipped),d.equipped||{});
+  const rawSkill=asObj(d.skill)||{};
+  for(const op of ["+","-","×"].concat(typeof EN_IDS!=="undefined"?EN_IDS:[])){
+    const base=DEFAULT.skill[op]||{level:1,acc:[],times:[],n:0,ok:0};
+    S.skill[op]=Object.assign(structuredClone(base),asObj(rawSkill[op])||{});
+  }
+  S.equipped=Object.assign(structuredClone(DEFAULT.equipped),asObj(d.equipped)||{});
   S.owned=structuredClone(DEFAULT.owned);
-  const ow=d.owned||{};
-  for(const k of Object.keys(DEFAULT.owned)) S.owned[k]=Array.from(new Set([...DEFAULT.owned[k],...(Array.isArray(ow[k])?ow[k]:[])]));
-  S.pet=Object.assign({stage:0},d.pet||{});
-  S.quests=Object.assign(structuredClone(DEFAULT.quests),d.quests||{});
-  if(!Array.isArray(S.quests.claimed)||S.quests.claimed.length!==3) S.quests.claimed=[false,false,false];
-  if(!Array.isArray(S.cards)) S.cards=Array.isArray(d.cards)?d.cards:[];
-  if(typeof S.freeWheel!=="string") S.freeWheel="";
-  if(typeof S.freeBox!=="string") S.freeBox="";
+  const ow=asObj(d.owned)||{};
+  for(const k of Object.keys(DEFAULT.owned)) S.owned[k]=Array.from(new Set([...DEFAULT.owned[k],...(Array.isArray(ow[k])?ow[k].filter(x=>typeof x==="string"):[])]));
+  S.pet=Object.assign({stage:0},asObj(d.pet)||{});
+  S.quests=Object.assign(structuredClone(DEFAULT.quests),asObj(d.quests)||{});
+  migrateSave();
   ensureWeek();
   sanitizeEquip();
+  save();
 }
 function save(){try{localStorage.setItem("mathAdv2",JSON.stringify(S));}catch(e){}}
 const timeMul=()=>({easy:1.5,normal:1,hard:.7})[S.settings.timer]||1; // מכפיל זמן / timer multiplier
@@ -789,6 +856,7 @@ function youngGrade(){return gradeRank(S.enGrade||"34")<=2;}
 function choiceCount(){const g=gradeRank(S.enGrade||"34");return g<=1?2:g===2?3:4;}
 function prize(n){n=Math.round(n)||0;if(!S||!S.hard||n<=0)return n;return n+Math.max(1,Math.round(n*0.25));}
 function stripEmoji(s){return String(s).replace(/\p{Extended_Pictographic}/gu,"").replace(/\uFE0F/g,"").replace(/\s{2,}/g," ").trim();}
+function starText(n){n=Math.max(0,Math.min(3,Math.round(Number(n))||0));return "⭐".repeat(n)+"☆".repeat(3-n);}
 function hardBtn(){return `<button type="button" class="btn ${S.hard?"pink":""}" id="hardBtn">${S.hard?"מצב קשה: בלי תמונות":"מצב קשה"}</button>`;}
 function bindHard(rerender){const b=$("hardBtn");if(!b)return;b.onclick=()=>{S.hard=!S.hard;save();sfx("click");toast(S.hard?"מצב קשה: רק מילים ומספרים, וקצת יותר מטבעות":"מצב קשה כבוי");rerender();};}
 function gradeBar(){return `<div class="grades">${GRADES.map(g=>`<button type="button" class="btn ${S.enGrade===g.id?"green":""}" data-grade="${g.id}">${g.short}</button>`).join("")}</div>`;}
@@ -821,7 +889,7 @@ AI.english=function(ctx){const cat=ctx.cat;const level=Math.max(1,Math.min(6,Mat
 function challenge(subject,level){let sub=subject||"math";if(sub==="mix")sub=Math.random()<0.5?"en":"math";if(sub==="en"){const cat=AI.pickOp(EN_IDS);return AI.english({cat,level:Math.round(level)||1,n:Math.floor(Math.random()*8)}); }return AI.generate(["+","-","×"],{level:Math.round(level)||1,types:["choice"]});}
 function missAns(q){const opts=(q.choices||[]).filter(c=>!sameAns(c,q.ans));if(opts.length)return AI.pick(opts);return typeof q.ans==="number"?q.ans+AI.pick([1,-1,2,10]):q.ans;}
 function startEnglish(cat,opt){opt=opt||{};stopTimers();const meta=EN_CATS.find(c=>c.id===cat)||{name:cat==="food"?"מזנון האכלה":cat,em:"🔤"};G={mode:"english",world:0,cat,habitat:opt.habitat||"",starKey:opt.starKey||cat,n:0,correct:0,score:0,double:false,shield:false,frozen:0,ops:[cat],total:8};show("playScreen");$("bossRow").style.display="none";$("timerBox").style.display="none";const gn=(GRADES.find(x=>x.id===S.enGrade)||GRADES[0]).short;$("owlMsg").innerHTML=youngGrade()?`${meta.em} <b>${esc(opt.title||meta.name)}</b>. בחרו. 🔊 שומע.`:`${meta.em} <b>${esc(opt.title||meta.name)}</b> · ${gn}. בחרו מילה, או לחצו 🔊 כדי לשמוע.`;nextQ();}
-function renderZoo(){show("zooScreen");const g=GRADES.find(x=>x.id===S.enGrade)||GRADES[0];$("zooMap").innerHTML=`<div class="zooHead"><h2>🦁 גן החיות / <bdo dir="ltr">Zoo</bdo></h2><p class="pathNote">כלוב = שלב. ${esc(g.name)}. 🔊 שומע.</p>${gradeBar()}${hardBtn()}</div><div class="zooGrid">${ZOO.map((z,i)=>{const st=S.enStars[z.star]||0;return `<button type="button" class="pen ${z.food?"food":""}" data-pen="${z.id}"><span class="em">${z.em}</span><b>שלב ${i+1} · ${z.name}</b><small>${z.blurb}</small><small>${"⭐".repeat(st)}${"☆".repeat(3-st)}</small></button>`;}).join("")}</div><div class="row"><button type="button" class="btn" id="zooBack">המפה</button></div>`;bindGrades($("zooMap"),renderZoo);bindHard(renderZoo);$("zooMap").querySelectorAll("[data-pen]").forEach(b=>b.onclick=()=>{const z=ZOO.find(x=>x.id===b.dataset.pen);sfx("click");if(z.food)startEnglish("food",{starKey:z.star,title:z.name});else startEnglish("zoo",{habitat:z.habitat,starKey:z.star,title:z.name});});$("zooBack").onclick=renderMap;}
+function renderZoo(){show("zooScreen");const g=GRADES.find(x=>x.id===S.enGrade)||GRADES[0];$("zooMap").innerHTML=`<div class="zooHead"><h2>🦁 גן החיות / <bdo dir="ltr">Zoo</bdo></h2><p class="pathNote">כלוב = שלב. ${esc(g.name)}. 🔊 שומע.</p>${gradeBar()}${hardBtn()}</div><div class="zooGrid">${ZOO.map((z,i)=>{const st=S.enStars&&S.enStars[z.star];return `<button type="button" class="pen ${z.food?"food":""}" data-pen="${z.id}"><span class="em">${z.em}</span><b>שלב ${i+1} · ${z.name}</b><small>${z.blurb}</small><small>${starText(st)}</small></button>`;}).join("")}</div><div class="row"><button type="button" class="btn" id="zooBack">המפה</button></div>`;bindGrades($("zooMap"),renderZoo);bindHard(renderZoo);$("zooMap").querySelectorAll("[data-pen]").forEach(b=>b.onclick=()=>{const z=ZOO.find(x=>x.id===b.dataset.pen);sfx("click");if(z.food)startEnglish("food",{starKey:z.star,title:z.name});else startEnglish("zoo",{habitat:z.habitat,starKey:z.star,title:z.name});});$("zooBack").onclick=renderMap;}
 
 /* =========================================================
    5. חיבור ל-LLM אמיתי / REAL LLM API  —  מושבת כברירת מחדל (DISABLED)
@@ -909,7 +977,7 @@ function goHub(){show("hubScreen");ensureWeek();const h=new Date().getHours();
   $("dailyTag").textContent=S.dailyDate===today()?"✅ הושלם היום":"פרס 50 🪙";
   paintGifts();renderHubExtras();hud();
   clearInterval(giftInt);giftInt=setInterval(()=>{if(!$("hubScreen").classList.contains("active")){clearInterval(giftInt);giftInt=null;return;}paintGifts();const left=$("giftLeft");if(left)left.textContent=fmtLeft(msToMidnight());},1000);}
-function goto(where){sfx("click");stopTimers();({map:renderMap,arena:arenaIntro,duel:duelIntro,lightning:startLightning,daily:startDaily,shop:()=>renderShop("skins"),wheel:()=>renderShop("surprise"),badges:renderBadges,stats:renderStats,settings:renderSettings,album:renderAlbum}[where])();}
+function goto(where){sfx("click");stopTimers();({map:renderMap,english:openEnglishWorld,arena:arenaIntro,duel:duelIntro,lightning:startLightning,daily:startDaily,shop:()=>renderShop("skins"),wheel:()=>renderShop("surprise"),badges:renderBadges,stats:renderStats,settings:renderSettings,album:renderAlbum}[where])();}
 $("giftBanner").onclick=()=>{sfx("click");renderShop("surprise");};
 $("startBtn").onclick=()=>{sfx("click");ac();if(S.settings.music)music(true);S.name?goHub():showProfile();};
 $("startSettings").onclick=()=>{ac();renderSettings();};
@@ -933,17 +1001,37 @@ $("musBtn").onclick=()=>{S.settings.music=!S.settings.music;music(S.settings.mus
 let G=null,tInt=null,giftInt=null;
 function stopTimers(){clearInterval(tInt);tInt=null;if(A){clearInterval(A.int);A.timers.forEach(clearTimeout);A=null;}
   if(D){clearInterval(D.int);(D.timers||[]).forEach(clearTimeout);D=null;}}
-function renderMap(){show("mapScreen");
-  const worlds=WORLDS.map((w,i)=>{const L=i>=S.unlocked,st=S.worldStars[i];
-    return `<div class="world w${i} ${L?"locked":""}"><span class="em">${L?"🔒":w.em}</span><b>${w.name}</b><br>${"⭐".repeat(st)}${"☆".repeat(3-st)} ${S.bossWon[i]?"· 👑":""}
+function englishPanelHTML(){
+  try{migrateSave();
+    const cats=EN_CATS.map(c=>{
+      let st=0;
+      try{st=c.zoo?Math.max(0,...ZOO.map(z=>Number(S.enStars&&S.enStars[z.star])||0)):Number(S.enStars&&S.enStars[c.id])||0;}catch(e){st=0;}
+      const skill=S.skill&&S.skill[c.id];
+      const lv=skill&&Number.isFinite(Number(skill.level))?Math.max(1,Math.min(6,Math.round(Number(skill.level)))):1;
+      return `<button type="button" class="tile tEn" data-en="${escAttr(c.id)}"><span class="em">${c.em}</span>${esc(c.name)}<small>${esc(c.blurb||"")} · רמה ${lv}/6 · ${starText(st)}</small></button>`;
+    }).join("");
+    let bar="",hard="";
+    try{bar=gradeBar();}catch(e){bar="";}
+    try{hard=hardBtn();}catch(e){hard="";}
+    return `<div class="enWorld" id="enWorld"><h2>🔤 עולם האנגלית</h2><p class="enLead">בחרו כיתה. 🔊 שומע את המילה. מצב קשה מסתיר תמונות גם בחשבון.</p>${bar}${hard}<div class="enHub">${cats}</div></div>`;
+  }catch(err){console.warn("enWorld",err);
+    const list=Array.isArray(EN_CATS)&&EN_CATS.length?EN_CATS:[{id:"vocab",em:"🔤",name:"אוצר מילים"}];
+    const cats=Array.prototype.map.call(list,c=>`<button type="button" class="tile tEn" data-en="${escAttr(c.id)}"><span class="em">${c.em||"🔤"}</span>${esc(c.name||c.id)}</button>`).join("");
+    return `<div class="enWorld" id="enWorld"><h2>🔤 עולם האנגלית</h2><p class="enLead">בחרו נושא.</p><div class="enHub">${cats}</div></div>`;
+  }
+}
+function renderMap(){show("mapScreen");migrateSave();
+  let worlds="";
+  try{worlds=WORLDS.map((w,i)=>{const L=i>=Number(S.unlocked),st=Number(S.worldStars&&S.worldStars[i])||0;
+    return `<div class="world w${i} ${L?"locked":""}"><span class="em">${L?"🔒":w.em}</span><b>${esc(w.name)}</b><br>${starText(st)} ${S.bossWon&&S.bossWon[i]?"· 👑":""}
     <div class="row"><button class="btn green" data-l="${i}" ${L?"disabled":""}>▶ שלב</button><button class="btn pink" data-b="${i}" ${L||st<2?"disabled":""}>${w.boss.em} בוס</button></div></div>`;}).join("");
-  const cats=EN_CATS.map(c=>{const st=c.zoo?Math.max(0,...ZOO.map(z=>S.enStars[z.star]||0)):(S.enStars[c.id]||0);const lv=S.skill[c.id]?S.skill[c.id].level:1;
-    return `<button type="button" class="tile tEn" data-en="${c.id}"><span class="em">${c.em}</span>${c.name}<small>${c.blurb} · רמה ${lv}/6 · ${"⭐".repeat(st)}${"☆".repeat(3-st)}</small></button>`;}).join("");
-  $("map").innerHTML=worlds+`<div class="enWorld"><h2>🔤 עולם האנגלית</h2><p class="enLead">בחרו כיתה. 🔊 שומע את המילה. מצב קשה מסתיר תמונות גם בחשבון.</p>${gradeBar()}${hardBtn()}<div class="hub enHub">${cats}</div></div>`;
+  }catch(e){console.warn("worlds",e);worlds="";}
+  $("map").innerHTML=`<div class="worlds">${worlds}</div>${englishPanelHTML()}`;
   $("map").querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>startMode("level",+b.dataset.l));
   $("map").querySelectorAll("[data-b]").forEach(b=>b.onclick=()=>startMode("boss",+b.dataset.b));
   $("map").querySelectorAll("[data-en]").forEach(b=>b.onclick=()=>{sfx("click");if(b.dataset.en==="zoo")renderZoo();else startEnglish(b.dataset.en);});
-  bindGrades($("map"),renderMap);bindHard(renderMap);hud();}
+  bindGrades($("map"),renderMap);bindHard(renderMap);try{hud();}catch(e){console.warn("hud",e);}}
+function openEnglishWorld(){renderMap();const el=$("enWorld");if(el)requestAnimationFrame(()=>el.scrollIntoView({block:"start",inline:"nearest"}));}
 
 function startMode(mode,world=0){
   stopTimers();const W=WORLDS[world];
