@@ -310,6 +310,9 @@ button.giftBanner{border:0;width:100%;font:inherit;color:inherit}
 .hePass{background:#fff8e8;border-radius:16px;padding:10px 12px;text-align:right;font-size:1.12rem;line-height:1.65;margin:6px 0}
 .choices button.he{font-size:1.2rem;line-height:1.35}
 .tHe{background:linear-gradient(135deg,#d35400,#f4a261)}
+.tFriend{background:linear-gradient(135deg,#3a86ff,#6a3df0)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#c5c1d4;vertical-align:middle;margin-inline-end:6px}
+.dot.on{background:#2ec4b6}
 .enHub .tHe{min-height:96px}
 #hubScreen .tile.tHe{min-height:130px}
 .duelQ .enBig{font-size:2rem}
@@ -555,6 +558,7 @@ body::before{
       <button class="tile t6" data-go="badges"><span class="em">🏅</span>הישגים</button>
       <button class="tile t7" data-go="stats"><span class="em">📊</span>התקדמות</button>
       <button class="tile t8" data-go="settings"><span class="em">⚙️</span>הגדרות</button>
+      <button class="tile tFriend" data-go="friends"><span class="em">👫</span>חברים<small>קוד ומשחק אונליין</small></button>
     </div>
     <div id="hubExtras"></div>
   </section>
@@ -605,6 +609,7 @@ body::before{
 
   <!-- ===== 1 על 1 / Duel ===== -->
   <section class="screen" id="duelScreen"></section>
+  <section class="screen" id="friendsScreen"></section>
 
   <!-- ===== אוסף קלפים / Cards ===== -->
   <section class="screen" id="albumScreen"><h2>🃏 אוסף הקלפים</h2><div class="panel" id="albumBox"></div></section>
@@ -630,6 +635,7 @@ body::before{
 <div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
 <div id="revealLayer"></div>
 
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
 "use strict";
 /* =========================================================
@@ -694,7 +700,7 @@ const OPNAME={"+":"חיבור","-":"חיסור","×":"כפל"};
 const DEFAULT={name:"",avatar:"🧒",coins:30,points:0,streak:0,bestStreak:0,totalCorrect:0,totalWrong:0,fastAnswers:0,
   unlocked:1,worldStars:[0,0,0,0],bossWon:[false,false,false,false],bosses:0,arenaGames:0,arenaWins:0,lightningBest:0,
   duelGames:0,duelWins:0,freeWheel:"",freeBox:"",cards:[],seasonClaim:"",
-  dailyDate:"",dailyCount:0,badges:[],enGrade:"34",enStars:{},heGrade:"34",heStars:{},stickers:[],hard:false,asked:{},skin:"🦉",skins:["🦉"],pups:{hint:2,freeze:1,shield:1,double:1,time:1,heal:1,steal:0},
+  dailyDate:"",dailyCount:0,badges:[],enGrade:"34",enStars:{},heGrade:"34",heStars:{},stickers:[],hard:false,asked:{},friendCode:"",friends:[],skin:"🦉",skins:["🦉"],pups:{hint:2,freeze:1,shield:1,double:1,time:1,heal:1,steal:0},
   settings:{sound:true,music:false,timer:"normal",showAI:true,speak:false},
   pet:{stage:0},
   quests:{week:"",solve:0,streakHit:false,duelOrArena:false,claimed:[false,false,false]},
@@ -703,6 +709,12 @@ const DEFAULT={name:"",avatar:"🧒",coins:30,points:0,streak:0,bestStreak:0,tot
   skill:{"+":{level:1,acc:[],times:[],n:0,ok:0},"-":{level:1,acc:[],times:[],n:0,ok:0},"×":{level:1,acc:[],times:[],n:0,ok:0}}};
 let S;
 function asObj(v){return v&&typeof v==="object"&&!Array.isArray(v)?v:null;}
+const CODE_ALPH="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const CODE_RE=/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/;
+function makeFriendCode(){let s="";const buf=new Uint8Array(6);if(crypto&&crypto.getRandomValues)crypto.getRandomValues(buf);else for(let i=0;i<6;i++)buf[i]=Math.floor(Math.random()*256);for(let i=0;i<6;i++)s+=CODE_ALPH[buf[i]%CODE_ALPH.length];return s;}
+function normCode(v){const s=String(v||"").toUpperCase().replace(/[^A-Z0-9]/g,"");return CODE_RE.test(s)?s:"";}
+function cleanName(v){const s=String(v||"").replace(/[<>]/g,"").trim().slice(0,14);return s||"חבר";}
+function cleanAv(v){if(v==="starling"||v==="🌟")return "🌟";return (typeof AVATARS!=="undefined"&&AVATARS.includes(v))?v:"🧒";}
 function migrateSave(){
   if(!S||typeof S!=="object")return;
   const n=v=>{const x=Number(v);return Number.isFinite(x)?x:0;};
@@ -741,6 +753,16 @@ function migrateSave(){
     if(list.length)asked[k]=list;
   });
   S.asked=asked;
+  if(!CODE_RE.test(S.friendCode||""))S.friendCode=makeFriendCode();
+  if(!Array.isArray(S.friends))S.friends=[];
+  const seenF={};
+  S.friends=S.friends.filter(f=>{
+    if(!f||!CODE_RE.test(f.code)||f.code===S.friendCode||seenF[f.code])return false;
+    seenF[f.code]=1;
+    f.name=cleanName(f.name);
+    f.avatar=cleanAv(f.avatar);
+    return true;
+  }).map(f=>({code:f.code,name:f.name,avatar:f.avatar}));
   if(typeof S.freeWheel!=="string")S.freeWheel="";
   if(typeof S.freeBox!=="string")S.freeBox="";
   S.settings=Object.assign({sound:true,music:false,timer:"normal",showAI:true,speak:false},asObj(S.settings)||{});
@@ -795,6 +817,7 @@ function load(){
   ensureWeek();
   sanitizeEquip();
   save();
+  if(typeof netStart==="function")netStart();
 }
 function save(){try{localStorage.setItem("mathAdv2",JSON.stringify(S));}catch(e){}}
 const timeMul=()=>({easy:1.5,normal:1,hard:.7})[S.settings.timer]||1; // מכפיל זמן / timer multiplier
@@ -1512,12 +1535,12 @@ const today=()=>new Date().toISOString().slice(0,10);
 /* =========================================================
    7. ניווט / Navigation (start → profile → hub)
    ========================================================= */
-function goHub(){show("hubScreen");ensureWeek();const h=new Date().getHours();
+function goHub(){if(typeof frLeave==="function")frLeave(true);show("hubScreen");ensureWeek();const h=new Date().getHours();
   $("hubMsg").innerHTML=`${h<12?"בוקר טוב":h<18?"צהריים טובים":"ערב טוב"}, <b>${esc(S.name)}</b>! ${S.totalCorrect?`כבר פתרת ${S.totalCorrect} תרגילים. `:""}מה נעשה היום? ${AI.pick(["אולי 1 על 1? 🤝","האתגר היומי מחכה 📅","בוא נמשיך בהרפתקה 🗺️","יש מתנות בחנות 🎁","עולם האנגלית מחכה 🔤","עולם העברית מחכה 📖"])}`;
   $("dailyTag").textContent=S.dailyDate===today()?"✅ הושלם היום":"פרס 50 🪙";
   paintGifts();renderHubExtras();hud();
   clearInterval(giftInt);giftInt=setInterval(()=>{if(!$("hubScreen").classList.contains("active")){clearInterval(giftInt);giftInt=null;return;}paintGifts();const left=$("giftLeft");if(left)left.textContent=fmtLeft(msToMidnight());},1000);}
-function goto(where){sfx("click");stopTimers();({map:renderMap,english:openEnglishWorld,hebrew:renderHebrew,arena:arenaIntro,duel:duelIntro,lightning:startLightning,daily:startDaily,shop:()=>renderShop("skins"),wheel:()=>renderShop("surprise"),badges:renderBadges,stats:renderStats,settings:renderSettings,album:renderAlbum}[where])();}
+function goto(where){sfx("click");stopTimers();({map:renderMap,english:openEnglishWorld,hebrew:renderHebrew,arena:arenaIntro,duel:duelIntro,lightning:startLightning,daily:startDaily,shop:()=>renderShop("skins"),wheel:()=>renderShop("surprise"),badges:renderBadges,stats:renderStats,settings:renderSettings,album:renderAlbum,friends:renderFriends}[where])();}
 $("giftBanner").onclick=()=>{sfx("click");renderShop("surprise");};
 $("startBtn").onclick=()=>{sfx("click");ac();if(S.settings.music)music(true);S.name?goHub():showProfile();};
 $("startSettings").onclick=()=>{ac();renderSettings();};
@@ -1597,13 +1620,19 @@ function renderPups(box,onUse){box.innerHTML=Object.entries(PUPS).map(([k,p])=>`
 function qKey(q){return String(q&&q.text||"").replace(/\s+/g," ").trim().toLowerCase();}
 function adventureQuestion(ops,o){
   o=o||{};
+  const own=!Array.isArray(o.bag);
   const key=String(o.levelKey??"0");
-  if(!asObj(S.asked))S.asked={};
-  if(!Array.isArray(S.asked[key]))S.asked[key]=[];
-  const bag=S.asked[key];
+  if(own){
+    if(!asObj(S.asked))S.asked={};
+    if(!Array.isArray(S.asked[key]))S.asked[key]=[];
+  }
+  const bag=own?S.asked[key]:o.bag;
   const seen=new Set(bag);
   const avoid=o.avoid||"";
   const opts={lvlBoost:o.lvlBoost||0,english:true};
+  if(o.rng)opts.rng=o.rng;
+  if(o.level!=null)opts.level=o.level;
+  if(o.types)opts.types=o.types;
   let q,k="";
   for(let i=0;i<40;i++){
     q=AI.generate(ops,opts);
@@ -1624,8 +1653,7 @@ function adventureQuestion(ops,o){
     if(idx>=0)bag.splice(idx,1);
     bag.push(k);
     while(bag.length>30)bag.shift();
-    S.asked[key]=bag;
-    save();
+    if(own){S.asked[key]=bag;save();}
   }
   return q;
 }
@@ -2210,13 +2238,296 @@ function renderSettings(){show("settingsScreen");const st=S.settings;
     [{t:"כן, אפס",cls:"pink",f:()=>{localStorage.removeItem("mathAdv2");load();show("startScreen");}},{t:"ביטול"}]);}
 
 /* =========================================================
+   חברים אונליין / Friends — PeerJS, no server, no chat
+   ========================================================= */
+const PEER_PREFIX="hrpmath-";
+let peer=null,F=null,friendWatch=null,pendingPlay=null,playReady=null;
+const conns=new Map();
+const online=new Set();
+function peerIdOf(code){return PEER_PREFIX+code;}
+function codeFromId(id){const m=String(id||"").toUpperCase().match(/^HRPMATH-([ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6})$/);return m?m[1]:"";}
+function makeRng(seed){let s=seed>>>0||1;return function(){s=(Math.imul(1664525,s)+1013904223)>>>0;return s/4294967296;};}
+function isFriend(code){return Array.isArray(S.friends)&&S.friends.some(f=>f.code===code);}
+function saveFriend(f){if(!f||!CODE_RE.test(f.code)||f.code===S.friendCode)return;const row={code:f.code,name:cleanName(f.name),avatar:cleanAv(f.avatar)};const i=S.friends.findIndex(x=>x.code===row.code);if(i>=0)S.friends[i]=row;else S.friends.push(row);save();}
+function sendTo(conn,msg){try{if(conn&&conn.open)conn.send(msg);}catch(e){}}
+function netStart(){
+  if(typeof Peer!=="function"||!S||!CODE_RE.test(S.friendCode||""))return;
+  const id=peerIdOf(S.friendCode);
+  if(peer&&!peer.destroyed&&!peer.open)return;
+  if(peer&&!peer.destroyed&&peer.id&&peer.id.toUpperCase()===id.toUpperCase())return;
+  if(peer&&!peer.destroyed){try{peer.destroy();}catch(e){}conns.clear();online.clear();}
+  peer=new Peer(id,{host:"0.peerjs.com",port:443,path:"/",secure:true,debug:0,config:{iceServers:[{urls:"stun:stun.l.google.com:19302"}]}});
+  peer.on("connection",c=>bindConn(c));
+  peer.on("error",onPeerErr);
+  peer.on("disconnected",()=>{try{if(peer&&!peer.destroyed)peer.reconnect();}catch(e){}});
+}
+function onPeerErr(err){
+  const type=err&&err.type;
+  if(type==="peer-unavailable")return;
+  if(type==="unavailable-id"){toast("הקוד הזה כבר מחובר במכשיר אחר");return;}
+}
+function bindConn(conn){
+  const known=codeFromId(conn.peer);
+  if(known)conns.set(known,conn);
+  conn.on("data",msg=>onNet(conn,msg));
+  conn.on("close",()=>onNetClose(conn));
+  conn.on("error",()=>onNetClose(conn));
+}
+function onNetClose(conn){
+  const code=codeFromId(conn.peer);
+  if(code){if(conns.get(code)===conn)conns.delete(code);online.delete(code);}
+  if(F&&F.conn===conn){frLeave(false);modal(`<span class="em">📡</span><h2>החבר התנתק</h2><p>המשחק נעצר. נסו שוב כשהחבר במשחק.</p>`,[{t:"תפריט",f:goHub}]);}
+  if(friendsOpen())paintFriendList();
+}
+function connectCode(code){
+  const id=peerIdOf(code);
+  const old=conns.get(code);
+  if(old&&old.open)return Promise.resolve(old);
+  return new Promise((resolve,reject)=>{
+    if(!peer||peer.destroyed){reject(new Error("offline"));return;}
+    let done=false;
+    const conn=peer.connect(id,{reliable:true});
+    const onErr=err=>{if(err&&err.type==="peer-unavailable")fail();};
+    const fail=()=>{if(done)return;done=true;clearTimeout(to);try{peer.off("error",onErr);}catch(e){}try{conn.close();}catch(e){}reject(new Error("offline"));};
+    const to=setTimeout(fail,8000);
+    peer.on("error",onErr);
+    conn.on("open",()=>{if(done)return;done=true;clearTimeout(to);try{peer.off("error",onErr);}catch(e){}bindConn(conn);conns.set(code,conn);resolve(conn);});
+    conn.on("error",fail);
+    conn.on("close",()=>{if(!done)fail();});
+  });
+}
+function onNet(conn,msg){
+  if(!msg||typeof msg!=="object")return;
+  const code=codeFromId(conn.peer)||normCode(msg.code);
+  if(code){conns.set(code,conn);if(conn.open)online.add(code);}
+  if(msg.t==="ping"){sendTo(conn,{t:"pong",code:S.friendCode,name:S.name,avatar:cleanAv(S.avatar)});if(friendsOpen())paintFriendList();return;}
+  if(msg.t==="pong"){if(friendsOpen())paintFriendList();return;}
+  if(msg.t==="friend"){onFriendAsk(conn,code,msg);return;}
+  if(msg.t==="friend-ok"){saveFriend({code:code||normCode(msg.code),name:msg.name,avatar:msg.avatar});toast("עכשיו אתם חברים");if(friendsOpen())paintFriendList();return;}
+  if(msg.t==="friend-no"){toast("החבר לא אישר");return;}
+  if(msg.t==="play"){onPlayAsk(conn,code,msg);return;}
+  if(msg.t==="play-ok"){if(pendingPlay&&pendingPlay.code===code){pendingPlay=null;hostGo(conn,code);}return;}
+  if(msg.t==="play-no"){if(pendingPlay&&pendingPlay.code===code)pendingPlay=null;toast("החבר לא פנוי עכשיו");return;}
+  if(msg.t==="go"){if(playReady&&playReady.conn===conn){playReady=null;frBegin(conn,msg,false);}return;}
+  if(msg.t==="prog"){onProg(conn,msg);return;}
+  if(msg.t==="bye"){if(F&&F.conn===conn){frLeave(false);modal(`<span class="em">📡</span><h2>החבר יצא מהמשחק</h2><p>חוזרים לתפריט.</p>`,[{t:"תפריט",f:goHub}]);}}
+}
+function onFriendAsk(conn,code,msg){
+  if(!code||code===S.friendCode)return;
+  const row={code,name:cleanName(msg.name),avatar:cleanAv(msg.avatar)};
+  if(isFriend(code)){saveFriend(row);sendTo(conn,{t:"friend-ok",code:S.friendCode,name:S.name,avatar:cleanAv(S.avatar)});return;}
+  modal(`<span class="em">${row.avatar}</span><h2>${esc(row.name)} רוצה להיות חבר שלך</h2>`,[
+    {t:"אשר",cls:"green",f:()=>{saveFriend(row);sendTo(conn,{t:"friend-ok",code:S.friendCode,name:S.name,avatar:cleanAv(S.avatar)});toast("עכשיו אתם חברים");if(friendsOpen())paintFriendList();}},
+    {t:"דחה",cls:"pink",f:()=>sendTo(conn,{t:"friend-no"})}
+  ]);
+}
+function onPlayAsk(conn,code,msg){
+  if(!code||!isFriend(code)){sendTo(conn,{t:"play-no"});return;}
+  if(F){sendTo(conn,{t:"play-no"});return;}
+  const row={code,name:cleanName(msg.name),avatar:cleanAv(msg.avatar)};
+  saveFriend(row);
+  modal(`<span class="em">${row.avatar}</span><h2>${esc(row.name)} רוצה לשחק איתך</h2>`,[
+    {t:"אשר",cls:"green",f:()=>{playReady={conn,code};sendTo(conn,{t:"play-ok"});}},
+    {t:"דחה",cls:"pink",f:()=>{sendTo(conn,{t:"play-no"});}}
+  ]);
+}
+function hostGo(conn,code){
+  const friend=S.friends.find(f=>f.code===code)||{code,name:"חבר",avatar:"🧒"};
+  const seed=Math.floor(Math.random()*2147483646)+1;
+  const level=Math.max(1,Math.min(6,Math.round(levelFor("math"))));
+  const recent=(Array.isArray(S.asked.online)?S.asked.online:[]).filter(x=>typeof x==="string").slice(-30);
+  sendTo(conn,{t:"go",seed,level,recent,total:8});
+  frBegin(conn,{seed,level,recent,total:8,name:friend.name,avatar:friend.avatar,code},true);
+}
+function friendsOpen(){const el=$("friendsScreen");return !!(el&&el.classList.contains("active")&&!F);}
+function renderFriends(){
+  netStart();show("friendsScreen");
+  if(!$("friendList")){
+    $("friendsScreen").innerHTML=`<div class="panel" style="text-align:center"><h2>👫 חברים</h2>
+      <p>הקוד שלי</p><h2 id="myCode" dir="ltr" style="letter-spacing:.18em;margin:6px 0">${esc(S.friendCode)}</h2>
+      <div class="row"><button type="button" class="btn" id="copyCode">העתק קוד</button></div>
+      <p id="netStat"></p>
+      <h3>הוסיפו חבר</h3>
+      <input class="txt" id="friendIn" maxlength="6" dir="ltr" placeholder="קוד של חבר" autocomplete="off">
+      <div class="row"><button type="button" class="btn green" id="friendAdd">הוספה</button></div>
+      <div class="grid" id="friendList"></div>
+      <div class="row" style="margin-top:12px"><button type="button" class="btn" id="friendHome">תפריט</button></div></div>`;
+    $("copyCode").onclick=copyFriendCode;
+    $("friendAdd").onclick=addFriend;
+    $("friendHome").onclick=goHub;
+    $("friendIn").onkeydown=e=>{if(e.key==="Enter")addFriend();};
+  }else{const c=$("myCode");if(c)c.textContent=S.friendCode;}
+  paintFriendList();refreshOnline();
+  clearInterval(friendWatch);
+  friendWatch=setInterval(()=>{if(!friendsOpen())return;refreshOnline();},10000);
+}
+function paintFriendList(){
+  const box=$("friendList");if(!box)return;
+  const stat=$("netStat");
+  if(stat)stat.textContent=typeof Peer!=="function"?"החיבור לחברים לא נטען. בדקו את הרשת.":(peer&&peer.open?"מחוברים למשחק אונליין":"מתחברים…");
+  if(!S.friends.length){box.innerHTML=`<p style="grid-column:1/-1">עדיין אין חברים. שלחו את הקוד שלכם לחבר שנמצא במשחק.</p>`;return;}
+  box.innerHTML=S.friends.map(f=>{const on=online.has(f.code)&&conns.get(f.code)&&conns.get(f.code).open;
+    return `<div class="item"><b class="em">${f.avatar}</b><b>${esc(f.name)}</b><small><i class="dot ${on?"on":""}"></i>${on?"מחובר":"לא מחובר"} · <bdo dir="ltr">${esc(f.code)}</bdo></small>${on?`<button type="button" class="btn green" data-play="${f.code}">שחק ביחד</button>`:""}</div>`;
+  }).join("");
+  box.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>invitePlay(b.dataset.play));
+}
+async function copyFriendCode(){
+  const code=S.friendCode;
+  try{if(navigator.clipboard&&navigator.clipboard.writeText)await navigator.clipboard.writeText(code);toast("הקוד הועתק");}
+  catch(e){toast(code);}
+}
+async function addFriend(){
+  const code=normCode($("friendIn")&&$("friendIn").value);
+  if(!code){toast("הקוד צריך 6 תווים, בלי O, 0, I או 1");return;}
+  if(code===S.friendCode){toast("זה הקוד שלך");return;}
+  if(isFriend(code)){toast("כבר חברים");return;}
+  netStart();
+  toast("מתחברים…");
+  try{
+    await waitPeer();
+    const conn=await connectCode(code);
+    sendTo(conn,{t:"friend",code:S.friendCode,name:S.name,avatar:cleanAv(S.avatar)});
+    online.add(code);
+    paintFriendList();
+  }catch(e){
+    toast("החבר לא מחובר עכשיו – נסו שוב כשהוא במשחק");
+  }
+}
+function waitPeer(){
+  netStart();
+  if(!peer)return Promise.reject(new Error("offline"));
+  if(peer.open)return Promise.resolve();
+  return new Promise((resolve,reject)=>{
+    let done=false;
+    const ok=()=>{if(done)return;done=true;resolve();};
+    const bad=()=>{if(done)return;done=true;reject(new Error("offline"));};
+    peer.on("open",ok);
+    setTimeout(bad,10000);
+  });
+}
+let refreshing=false;
+async function refreshOnline(){
+  if(refreshing)return;
+  if(!S.friends.length){paintFriendList();return;}
+  refreshing=true;
+  try{await refreshOnlineBody();}finally{refreshing=false;}
+}
+async function refreshOnlineBody(){
+  netStart();
+  if(!peer||!peer.open){try{await waitPeer();}catch(e){paintFriendList();return;}}
+  for(const f of S.friends){
+    const cur=conns.get(f.code);
+    if(cur&&cur.open){online.add(f.code);sendTo(cur,{t:"ping",code:S.friendCode});continue;}
+    online.delete(f.code);
+    try{const conn=await connectCode(f.code);online.add(f.code);sendTo(conn,{t:"ping",code:S.friendCode,name:S.name,avatar:cleanAv(S.avatar)});}catch(e){online.delete(f.code);}
+  }
+  if(friendsOpen())paintFriendList();
+}
+function invitePlay(code){
+  const conn=conns.get(code);
+  if(!conn||!conn.open||!online.has(code)){toast("החבר לא מחובר עכשיו – נסו שוב כשהוא במשחק");return;}
+  pendingPlay={code,at:Date.now()};
+  sendTo(conn,{t:"play",code:S.friendCode,name:S.name,avatar:cleanAv(S.avatar)});
+  toast("מחכים לאישור…");
+  setTimeout(()=>{if(pendingPlay&&pendingPlay.code===code){pendingPlay=null;toast("אין תשובה. נסו שוב.");}},20000);
+}
+function mergeOnline(bag){
+  if(!asObj(S.asked))S.asked={};
+  const cur=Array.isArray(S.asked.online)?S.asked.online.slice():[];
+  (bag||[]).forEach(k=>{if(typeof k!=="string")return;const i=cur.indexOf(k);if(i>=0)cur.splice(i,1);cur.push(k);});
+  S.asked.online=cur.slice(-30);
+  save();
+}
+function frLeave(sendBye){
+  if(!F)return;
+  const conn=F.conn,bag=F.bag;
+  clearInterval(F.timer);
+  F=null;
+  mergeOnline(bag);
+  if(sendBye)sendTo(conn,{t:"bye"});
+}
+function frBegin(conn,msg,host){
+  clearInterval(friendWatch);friendWatch=null;
+  const code=codeFromId(conn.peer)||normCode(msg.code);
+  const friend=S.friends.find(f=>f.code===code)||{code,name:cleanName(msg.name),avatar:cleanAv(msg.avatar)};
+  const recent=Array.isArray(msg.recent)?msg.recent.filter(x=>typeof x==="string").slice(-30):[];
+  F={conn,host:!!host,code:friend.code,name:friend.name||cleanName(msg.name),avatar:friend.avatar||cleanAv(msg.avatar),
+    rng:makeRng(msg.seed),level:Math.max(1,Math.min(6,Math.round(msg.level)||1)),bag:recent.slice(),
+    total:Math.max(1,Math.min(8,Math.round(msg.total)||8)),i:0,myScore:0,theirScore:0,mine:false,theirs:false,q:null,prev:"",timer:null,left:20,over:false};
+  show("friendsScreen");
+  frShowNext();
+}
+function frShowNext(){
+  if(!F||F.over)return;
+  if(F.i>=F.total)return frEnd();
+  clearInterval(F.timer);
+  F.q=adventureQuestion(["+","-","×"],{rng:F.rng,level:F.level,bag:F.bag,avoid:F.prev,types:["choice","choice","numword"]});
+  F.prev=qKey(F.q);
+  F.i++;F.mine=false;F.theirs=false;F.left=20;
+  paintFr();
+  F.timer=setInterval(()=>{if(!F||F.over)return;F.left-=.1;const bar=$("frTimer");if(bar)bar.style.width=Math.max(0,F.left/20*100)+"%";if(F.left<=0&&!F.mine)frAnswer(null,null);},100);
+}
+function paintFr(){
+  if(!F)return;
+  const q=F.q;
+  $("friendsScreen").innerHTML=`<div style="text-align:center;font-weight:800;margin-bottom:6px">🤝 משחק עם ${esc(F.name)} · ${F.i}/${F.total}</div>
+    <div class="timer"><div id="frTimer" style="width:100%"></div></div>
+    <div class="duelSplit">
+      <div class="duelSide"><div class="who"><span class="av">${heroHTML()}</span> <b>${esc(S.name||"אני")}</b></div><div class="bigScore" id="frMe">${F.myScore}</div><div id="frQ"></div><div id="frAns"></div></div>
+      <div class="duelMid"><div id="frLog">${F.mine?"ענית":"ענו עכשיו"}</div><small>אותן שאלות לשניכם</small></div>
+      <div class="duelSide"><div class="who"><span class="av">${F.avatar}</span> <b>${esc(F.name)}</b></div><div class="bigScore" id="frThem">${F.theirScore}</div><p id="frState">${F.theirs?"החבר ענה":"החבר עונה…"}</p></div>
+    </div>`;
+  showQuestion($("frQ"),q);
+  renderAnswer($("frAns"),q,(v,b)=>frAnswer(v,b));
+}
+function frAnswer(v,btn){
+  if(!F||F.mine||F.over)return;
+  F.mine=true;
+  const ok=v!=null&&sameAns(v,F.q.ans);
+  if(ok){F.myScore++;if(btn)btn.classList.add("right");sfx("good");S.totalCorrect++;S.streak++;}else{if(btn)btn.classList.add("wrong");sfx("bad");S.streak=0;S.totalWrong++;}
+  S.bestStreak=Math.max(S.bestStreak,S.streak);
+  if(F.q&&F.q.op)AI.update(F.q.op,ok,(20-F.left));
+  save();hud();
+  document.querySelectorAll("#frAns button").forEach(b=>{b.disabled=true;if(F.q&&sameAns(b.dataset.v,F.q.ans))b.classList.add("right");});
+  const me=$("frMe");if(me)me.textContent=F.myScore;
+  const log=$("frLog");if(log)log.textContent=ok?"נכון!":"לא הפעם";
+  sendTo(F.conn,{t:"prog",i:F.i,score:F.myScore});
+  frAdvance();
+}
+function onProg(conn,msg){
+  if(!F||F.conn!==conn||F.over)return;
+  if(msg.i!==F.i)return;
+  F.theirs=true;
+  F.theirScore=Math.max(0,Math.round(Number(msg.score)||0));
+  const t=$("frThem");if(t)t.textContent=F.theirScore;
+  const st=$("frState");if(st)st.textContent="החבר ענה";
+  frAdvance();
+}
+function frAdvance(){if(!F||F.over||!F.mine||!F.theirs)return;clearInterval(F.timer);if(F.i>=F.total)frEnd();else frShowNext();}
+function frEnd(){
+  if(!F||F.over)return;
+  F.over=true;
+  const my=F.myScore,their=F.theirScore,name=F.name,av=F.avatar,bag=F.bag;
+  clearInterval(F.timer);
+  F=null;
+  mergeOnline(bag);
+  S.duelGames++;
+  const tie=my===their,won=my>their;
+  if(won)S.duelWins++;
+  const coins=prize(tie?12:won?30:10);
+  addCoins(coins);save();checkAch();
+  if(won){confetti(24);sfx("win");}
+  modal(`<span class="em">${tie?"🤝":won?"🏆":av}</span><h2>${tie?"תיקו!":won?"ניצחת בדו-קרב!":esc(name)+" ניצח"}</h2><p>אתה ${my} — ${esc(name)} ${their}</p><p><b>+${coins} 🪙</b></p>`,[{t:"לחברים",cls:"green",f:renderFriends},{t:"תפריט",f:goHub}]);
+}
+
+/* =========================================================
    11. אתחול / Init
    ========================================================= */
-load();syncPet(true);applyLook();
+load();syncPet(true);applyLook();netStart();
 document.querySelectorAll(".owlSkin").forEach(paintOwl);setOwlMood("idle");
 function hideSplash(){const s=$("splash");if(!s)return;s.classList.add("off");setTimeout(()=>s.remove(),520);}
 hideSplash();
-window.__game={get S(){return S;},get G(){return G;},get A(){return A;},get D(){return D;}}; // לבדיקות / test hook
+window.__game={get S(){return S;},get G(){return G;},get A(){return A;},get D(){return D;},get F(){return F;},get peerOpen(){return !!(peer&&peer.open);}}; // לבדיקות / test hook
 </script>
 <script>
 if ("serviceWorker" in navigator) {
