@@ -792,7 +792,7 @@ function migrateSave(){
   ops.forEach(op=>{
     const src=asObj(rawSkill[op])||{};
     const k=Object.assign({level:1,acc:[],times:[],n:0,ok:0},src);
-    k.level=Math.max(1,Math.min(6,Math.round(n(k.level)||1)));
+    k.level=Math.max(1,Math.min(op==="+"||op==="-"||op==="×"?10:6,Math.round(n(k.level)||1)));
     k.acc=Array.isArray(k.acc)?k.acc:[];
     k.times=Array.isArray(k.times)?k.times:[];
     k.n=Math.max(0,Math.round(n(k.n)));
@@ -863,6 +863,7 @@ const AI={
   rnd:(a,b)=>Math.floor(Math.random()*(b-a+1))+a,
   pick:a=>a[Math.floor(Math.random()*a.length)],
   range(op,l){l=Math.max(1,Math.min(6,l));return op==="×"?[[1,3],[1,5],[2,6],[2,9],[3,10],[4,12]][l-1]:[[1,5],[1,10],[3,20],[5,50],[10,100],[20,200]][l-1];},
+  mathLvl(op,o){const base=o&&o.level!=null?o.level:(S.skill[op]?S.skill[op].level:1);return Math.max(1,Math.min(10,Math.round(base+((o&&o.lvlBoost)||0))));},
   accuracy(op){const a=S.skill[op].acc;return a.length?a.reduce((x,y)=>x+y)/a.length:.6;},
   avgTime(op){const t=S.skill[op].times;return t.length?t.reduce((x,y)=>x+y)/t.length:8;},
   avgLevel(){return (S.skill["+"].level+S.skill["-"].level+S.skill["×"].level)/3;},
@@ -870,29 +871,188 @@ const AI={
   pickOp(ops){if(ops.length===1)return ops[0];const w=ops.map(o=>1.6-this.accuracy(o));let r=Math.random()*w.reduce((a,b)=>a+b);
     for(let i=0;i<ops.length;i++){r-=w[i];if(r<=0)return ops[i];}return ops[0];},
   // יצירת שאלה / generate question. opts: {ops, lvlBoost, types, rng, english}
+  // רמת מיומנות 1–10 = כיתות ג׳–י״ב. הקושי קופץ בין קבוצות הכיתות.
   generate(ops,o={}){
     const R=o.rng||Math.random, ri=(a,b)=>Math.floor(R()*(b-a+1))+a;
     const op=o.rng?ops[ri(0,ops.length-1)]:this.pickOp(ops);
-    const lvl=Math.max(1,Math.min(6,Math.round((o.level??S.skill[op].level)+(o.lvlBoost||0))));
-    const [lo,hi]=this.range(op,lvl);let a=ri(lo,hi),b=ri(lo,hi);
-    if(op==="-"&&b>a)[a,b]=[b,a];
-    const ans=op==="+"?a+b:op==="-"?a-b:a*b;
+    const lvl=this.mathLvl(op,o);
     let types=o.types||(lvl<=2?["choice","choice","type","word"]:["choice","type","type","word","missing"]);
-    if(o.english)types=types.concat(lvl>=5?["numword","numword"]:["numword"]);
+    if(o.english&&lvl<=2)types=types.concat(["numword"]);
     const type=types[ri(0,types.length-1)];
-    const q={op,a,b,ans,type,lvl};
-    if(o.english&&type==="numword")return this.numberWord(op,lvl,R,q);
-    if(o.english){
-      q.enText=true;
-      if(type==="word")q.text=this.wordProblem(op,a,b,R,true);
-      else if(type==="missing"){q.text=`What is ${a} ${op} ? = ${ans}?`;q.ans=b;q.missing=true;}
-      else q.text=this.mathPrompt(op,a,b,R);
+    if(o.english&&type==="numword"&&lvl<=2)return this.numberWord(op,Math.min(6,lvl),R,{op,a:0,b:0,ans:0,type,lvl});
+    return this.byGrade(op,lvl,R,!!o.english,type);
+  },
+  ipow(base,exp){let n=1;for(let i=0;i<exp;i++)n*=base;return n;},
+  numChoices(ans,extras,R){
+    const pool=[];
+    const push=x=>{const n=Math.round(Number(x));if(!Number.isFinite(n)||n===ans||pool.indexOf(n)>=0)return;pool.push(n);};
+    [ans+1,ans-1,ans+2,ans-2,ans+10,ans-10,ans+5,ans-5].forEach(push);
+    (extras||[]).forEach(push);
+    if(pool.length<3){push(ans+3);push(ans-3);push(ans+20);push(ans*2+1);}
+    return this.pickDistinct(ans,pool,R);
+  },
+  emit(op,lvl,R,english,built,type){
+    const q={op,lvl,a:built.a!=null?built.a:0,b:built.b!=null?built.b:0,ans:built.ans,type:"choice",gradeQ:true,tip:built.tip||""};
+    const long=!!built.long||String(built.en||"").length>34;
+    if(english&&type==="word"&&built.story&&lvl<=4){
+      q.type="word";q.enText=true;q.text=built.story;q.choices=undefined;
       return q;
     }
-    if(type==="word")q.text=this.wordProblem(op,a,b,R);
-    else if(type==="missing"){q.text=`${a} ${op} ? = ${ans}`;q.ans=b;q.missing=true;} // מספר חסר / missing number
-    else q.text=`${a} ${op} ${b} = ?`;
+    if(!english&&type==="word"&&built.story&&lvl<=4){q.type="word";q.text=built.story;return q;}
+    if(english){q.enText=true;q.text=built.en;if(long)q.type="word";}
+    else q.text=built.sym||built.en;
+    if(long&&english)q.type="word";
+    q.choices=this.numChoices(built.ans,built.extras,R);
+    if(q.type==="word")q.enText=!!english;
     return q;
+  },
+  arith(op,a,b){return op==="+"?a+b:op==="-"?a-b:a*b;},
+  byGrade(op,lvl,R,english,type){
+    const ri=(lo,hi)=>lo+Math.floor(R()*(hi-lo+1));
+    const grade=lvl+2;
+    const pick=arr=>arr[Math.floor(R()*arr.length)];
+    const easyStory=(a,b)=>{
+      if(!english&&type!=="word")return "";
+      if(grade>4)return "";
+      return this.wordProblem(op,a,b,R,english);
+    };
+    if(grade<=4){
+      let a,b,ans;
+      if(op==="×"){
+        if(grade===3){a=ri(1,5);b=ri(1,5);}else{a=ri(2,12);b=ri(2,10);}
+        ans=a*b;
+      }else if(op==="-"){
+        if(grade===3){a=ri(8,40);b=ri(1,Math.max(1,a-1));}else{a=ri(30,100);b=ri(8,a-5);}
+        ans=a-b;
+      }else{
+        if(grade===3){a=ri(2,40);b=ri(2,30);if(a+b>100)b=Math.max(1,100-a);}
+        else{a=ri(20,60);b=ri(15,40);if(a+b>100)b=Math.max(1,100-a);}
+        ans=a+b;
+      }
+      const sign=op==="+"?"+":op==="-"?"−":"×";
+      const en=this.mathPrompt(op==="-"?"−":op,a,b,R).replace("−","−");
+      return this.emit(op,lvl,R,english,{a,b,ans,en:en.replace(op,sign),sym:`${a} ${sign} ${b} = ?`,story:easyStory(a,b),extras:[a+b,Math.abs(a-b),a*b,ans+b],tip:op==="+"?`${a} + ${b} = ${ans}`:op==="-"?`${a} − ${b} = ${ans}`:`${a} × ${b} = ${ans}`},type);
+    }
+    if(grade<=6){
+      const bag=op==="+"?["add"]:op==="-"?["sub"]:["mul","div","frac"];
+      const kind=bag[Math.floor(R()*bag.length)];
+      if(kind==="add"){
+        const a=grade===5?ri(24,89):ri(140,780), b=grade===5?ri(16,78):ri(80,460);
+        const ans=a+b;
+        return this.emit(op,lvl,R,english,{a,b,ans,en:this.mathPrompt("+",a,b,R),sym:`${a} + ${b} = ?`,extras:[ans+10,ans-10,a+b-1,ans+100],tip:`${a} + ${b} = ${ans}. חברו עשרות ואז אחדות.`},type);
+      }
+      if(kind==="sub"){
+        const a=grade===5?ri(42,99):ri(320,980), span=grade===5?ri(15,40):ri(40,260);
+        const b=Math.min(a-3,span>a?ri(10,a-3):span);
+        const bb=b>=a?ri(5,a-2):b;
+        const ans=a-bb;
+        return this.emit(op,lvl,R,english,{a,b:bb,ans,en:this.mathPrompt("−",a,bb,R),sym:`${a} − ${bb} = ?`,extras:[a+bb,ans+10,ans-1,bb],tip:`${a} − ${bb} = ${ans}.`},type);
+      }
+      if(kind==="div"){
+        const d=grade===5?ri(2,5):ri(3,9), k=grade===5?ri(4,12):ri(6,18), a=d*k;
+        return this.emit(op,lvl,R,english,{a,b:d,ans:k,en:`What is ${a} ÷ ${d}?`,sym:`${a} ÷ ${d} = ?`,extras:[k+d,k-1,a-d,d],tip:`${a} ÷ ${d} = ${k}, כי ${d} × ${k} = ${a}.`},type);
+      }
+      if(kind==="frac"){
+        const dens=grade===5?[2,4]:[2,3,4,5];
+        const den=pick(dens), num=den===4&&grade>=6&&R()<0.5?pick([1,3]):1;
+        const whole=ri(2,grade===5?8:12)*den, ans=whole/den*num;
+        const label=num===1?`1/${den}`:`${num}/${den}`;
+        return this.emit(op,lvl,R,english,{a:whole,b:den,ans,en:`What is ${label} of ${whole}?`,sym:`${label} of ${whole} = ?`,extras:[whole/den,whole-den,ans+den,Math.round(whole/2)],tip:`${label} של ${whole} = ${ans}.`},type);
+      }
+      const a=grade===5?ri(12,40):ri(14,96), b=grade===5?ri(2,6):ri(3,9), ans=a*b;
+      return this.emit(op,lvl,R,english,{a,b,ans,en:this.mathPrompt("×",a,b,R),sym:`${a} × ${b} = ?`,extras:[a*(b+1),a*(b-1),ans+a,a+b],tip:`${a} × ${b} = ${ans}.`},type);
+    }
+    if(grade===7){
+      const bag=op==="×"?["order","percent"]:["neg","order","percent"];
+      const kind=bag[Math.floor(R()*bag.length)];
+      if(kind==="percent"){
+        const pct=pick([10,20,25,50]), base=pct===25?ri(2,16)*4:pct===20?ri(2,20)*5:ri(2,18)*10, ans=base*pct/100;
+        return this.emit(op,lvl,R,english,{a:pct,b:base,ans,en:`What is ${pct}% of ${base}?`,sym:`${pct}% of ${base} = ?`,long:true,extras:[pct,base/10,ans*2,ans+pct],tip:`${pct}% של ${base} = ${ans}.`},type);
+      }
+      if(kind==="order"){
+        if(R()<0.5){
+          const a=ri(2,9), b=ri(2,6), c=ri(2,5), ans=a+b*c;
+          return this.emit(op,lvl,R,english,{a,b,ans,en:`What is ${a} + ${b} × ${c}?`,sym:`${a} + ${b} × ${c} = ?`,extras:[(a+b)*c,a*b+c,ans+b,a*c],tip:`כפל קודם: ${b} × ${c} = ${b*c}, ואז ${a} + ${b*c} = ${ans}.`},type);
+        }
+        const a=ri(6,12), b=ri(1,a-1), c=ri(2,6), ans=(a-b)*c;
+        return this.emit(op,lvl,R,english,{a,b,ans,en:`What is (${a} − ${b}) × ${c}?`,sym:`(${a} − ${b}) × ${c} = ?`,long:true,extras:[a-b*c,a-b+c,ans+c,(a+b)*c],tip:`קודם הסוגריים: ${a} − ${b} = ${a-b}, ואז × ${c} = ${ans}.`},type);
+      }
+      if(R()<0.5){
+        const a=ri(-18,-2), b=ri(-8,14), ans=a+b;
+        return this.emit(op,lvl,R,english,{a,b,ans,en:`What is ${a} + ${b}?`,sym:`${a} + ${b} = ?`,extras:[a-b,Math.abs(a)+Math.abs(b),ans+1,ans-1],tip:`${a} + ${b} = ${ans}.`},type);
+      }
+      const a=ri(2,12), b=ri(a+1,a+16), ans=a-b;
+      return this.emit(op,lvl,R,english,{a,b,ans,en:`What is ${a} − ${b}?`,sym:`${a} − ${b} = ?`,extras:[b-a,a+b,ans-1,Math.abs(ans)],tip:`${a} − ${b} = ${ans}.`},type);
+    }
+    if(grade<=9){
+      const hard=grade===9;
+      const kind=pick(hard?["linear","linear","power","step"]:["linear","power","step"]);
+      if(kind==="power"){
+        if(!hard||R()<0.5){
+          const n=hard?ri(11,15):ri(4,12), ans=n*n;
+          return this.emit(op,lvl,R,english,{a:n,b:2,ans,en:`What is ${n} squared?`,sym:`${n}² = ?`,extras:[(n+1)*(n+1),n*2,ans+n,n*n-n],tip:`${n} בריבוע = ${n} × ${n} = ${ans}.`},type);
+        }
+        if(R()<0.5){
+          const n=ri(8,15), ans=n;
+          return this.emit(op,lvl,R,english,{a:n*n,b:2,ans,en:`What is the square root of ${n*n}?`,sym:`√${n*n} = ?`,long:true,extras:[n+1,n-1,n*2,n*n],tip:`השורש של ${n*n} הוא ${n}, כי ${n} × ${n} = ${n*n}.`},type);
+        }
+        const base=pick([2,3,4,5]), exp=base===2?ri(6,8):base===3?ri(3,4):base===4?ri(2,3):3, ans=this.ipow(base,exp);
+        return this.emit(op,lvl,R,english,{a:base,b:exp,ans,en:`What is ${base} to the power of ${exp}?`,sym:`${base}^${exp} = ?`,long:true,extras:[this.ipow(base,exp-1),this.ipow(base,exp+1),base*exp,ans+base],tip:`${base} בחזקת ${exp} = ${ans}.`},type);
+      }
+      if(kind==="step"){
+        if(hard&&R()<0.5){
+          const a=ri(3,9), b=ri(2,6), c=ri(1,12), ans=-a*b+c;
+          return this.emit(op,lvl,R,english,{a,b,ans,en:`What is −${a} × ${b} + ${c}?`,sym:`−${a} × ${b} + ${c} = ?`,long:true,extras:[-(a*b),a*b+c,ans-c,ans+a],tip:`קודם −${a} × ${b} = ${-a*b}, ואז + ${c} = ${ans}.`},type);
+        }
+        const a=hard?ri(12,28):ri(6,15), b=hard?ri(4,12):ri(3,9), c=ri(2,a), ans=a*b-c;
+        return this.emit(op,lvl,R,english,{a,b,ans,en:`What is ${a} × ${b} − ${c}?`,sym:`${a} × ${b} − ${c} = ?`,extras:[a*b,a*(b-1),ans+c,(a+b)*c],tip:`${a} × ${b} = ${a*b}, ואז − ${c} = ${ans}.`},type);
+      }
+      if(!hard){
+        const form=ri(1,3), x=ri(2,12);
+        if(form===1){const b=ri(3,15), rhs=x+b;return this.emit(op,lvl,R,english,{a:x,b,ans:x,en:`What is x if x + ${b} = ${rhs}?`,sym:`x + ${b} = ${rhs}`,long:true,extras:[rhs,b,x+1,rhs-b-1],tip:`x + ${b} = ${rhs}, לכן x = ${rhs} − ${b} = ${x}.`},type);}
+        if(form===2){const coef=pick([2,3,4]), rhs=coef*x;return this.emit(op,lvl,R,english,{a:x,b:coef,ans:x,en:`What is x if ${coef}x = ${rhs}?`,sym:`${coef}x = ${rhs}`,extras:[rhs,coef,x+coef,rhs-coef],tip:`${coef}x = ${rhs}, לכן x = ${rhs} ÷ ${coef} = ${x}.`},type);}
+        const b=ri(2,9), rhs=2*x+b;
+        return this.emit(op,lvl,R,english,{a:x,b,ans:x,en:`What is x if 2x + ${b} = ${rhs}?`,sym:`2x + ${b} = ${rhs}`,long:true,extras:[rhs,x+b,(rhs-b),x+1],tip:`2x + ${b} = ${rhs}. 2x = ${rhs-b}, x = ${x}.`},type);
+      }
+      if(R()<0.5){
+        const x=ri(3,9), b=ri(1,2*x), rhs=3*x-b;
+        return this.emit(op,lvl,R,english,{a:x,b,ans:x,en:`What is x if 3x − ${b} = ${rhs}?`,sym:`3x − ${b} = ${rhs}`,long:true,extras:[rhs,b,x+1,(rhs+b)],tip:`3x − ${b} = ${rhs}. 3x = ${rhs+b}, x = ${x}.`},type);
+      }
+      const x=ri(2,8)*2, b=ri(1,9), rhs=x/2+b;
+      return this.emit(op,lvl,R,english,{a:x,b,ans:x,en:`What is x if x ÷ 2 + ${b} = ${rhs}?`,sym:`x ÷ 2 + ${b} = ${rhs}`,long:true,extras:[rhs,x/2,x+2,rhs-b],tip:`x ÷ 2 + ${b} = ${rhs}. x ÷ 2 = ${rhs-b}, x = ${x}.`},type);
+    }
+    const tier=grade-9;
+    const kind=pick(["quad","exp","bigmul","algebra"]);
+    if(kind==="quad"){
+      const lo=tier===1?ri(1,4):tier===2?ri(2,6):ri(3,8);
+      let hi=lo+ri(1,tier===3?5:3);
+      const sum=lo+hi, prod=lo*hi;
+      return this.emit(op,lvl,R,english,{a:lo,b:hi,ans:lo,en:`What is the smaller x if x^2 − ${sum}x + ${prod} = 0?`,sym:`x^2 − ${sum}x + ${prod} = 0, smaller x`,long:true,extras:[hi,sum,prod,lo+1,hi-1],tip:`x^2 − ${sum}x + ${prod} = (x − ${lo})(x − ${hi}). השורש הקטן הוא ${lo}.`},type);
+    }
+    if(kind==="exp"){
+      let base,exp;
+      if(tier===1){base=2;exp=ri(5,8);}
+      else if(tier===2){base=pick([2,3]);exp=base===2?ri(8,10):ri(4,5);}
+      else{base=pick([2,3,4]);exp=base===2?ri(10,12):base===3?ri(5,6):ri(4,5);}
+      const ans=exp, val=this.ipow(base,exp);
+      return this.emit(op,lvl,R,english,{a:base,b:exp,ans,en:`${base} to what power equals ${val}?`,sym:`${base}^? = ${val}`,long:true,extras:[exp+1,exp-1,base,val%97],tip:`${base} בחזקת ${exp} = ${val}.`},type);
+    }
+    if(kind==="bigmul"){
+      const a=tier===1?ri(110,240):tier===2?ri(180,420):ri(250,480);
+      const b=tier===1?ri(12,19):tier===2?ri(16,28):ri(21,36);
+      const ans=a*b;
+      return this.emit(op,lvl,R,english,{a,b,ans,en:`What is ${a} × ${b}?`,sym:`${a} × ${b} = ?`,extras:[a*(b+1),a*(b-1),(a+10)*b,ans+a],tip:`${a} × ${b}: ${a} × ${b- (b%10)} ועוד ${a} × ${b%10} = ${ans}.`},type);
+    }
+    if(tier===1){
+      const x=ri(2,9), c=ri(2,6), rhs=2*(x+c);
+      return this.emit(op,lvl,R,english,{a:x,b:c,ans:x,en:`What is x if 2(x + ${c}) = ${rhs}?`,sym:`2(x + ${c}) = ${rhs}`,long:true,extras:[rhs,x+c,c,x+1],tip:`2(x + ${c}) = ${rhs}. x + ${c} = ${rhs/2}, x = ${x}.`},type);
+    }
+    if(tier===2){
+      const k=ri(1,6)*2, x=(3*k+4)/2, rhs=k;
+      return this.emit(op,lvl,R,english,{a:x,b:k,ans:x,en:`What is x if (2x − 4) ÷ 3 = ${rhs}?`,sym:`(2x − 4) ÷ 3 = ${rhs}`,long:true,extras:[rhs,x+2,(2*x-4),x-1],tip:`(2x − 4) ÷ 3 = ${rhs}. 2x − 4 = ${3*rhs}, 2x = ${3*rhs+4}, x = ${x}.`},type);
+    }
+    const x=ri(4,14), rhs=3*(x-2)+4;
+    return this.emit(op,lvl,R,english,{a:x,b:2,ans:x,en:`What is x if 3(x − 2) + 4 = ${rhs}?`,sym:`3(x − 2) + 4 = ${rhs}`,long:true,extras:[rhs,x-2,x+2,(rhs-4)/3],tip:`3(x − 2) + 4 = ${rhs}. 3(x − 2) = ${rhs-4}, x − 2 = ${(rhs-4)/3}, x = ${x}.`},type);
   },
   mathPrompt(op,a,b,R){
     const line=`${a} ${op} ${b}`;
@@ -971,14 +1131,14 @@ const AI={
     if(k.acc.length>8){k.acc.shift();k.times.shift();}
     const acc=this.accuracy(op),t=this.avgTime(op);
     if(k.acc.length>=4){
-      if(acc>=.85&&t<10&&k.level<6){k.level++;k.acc=[];k.times=[];levelUp(op,k.level);return "⬆️ עלית רמה ב"+OPNAME[op]+"!";}
+      const cap=op==="+"||op==="-"||op==="×"?10:6;if(acc>=.85&&t<10&&k.level<cap){k.level++;k.acc=[];k.times=[];levelUp(op,k.level);return "⬆️ עלית רמה ב"+OPNAME[op]+"!";}
       if(acc<.5&&k.level>1){k.level--;k.acc=[];k.times=[];return "🤗 נתרגל עם מספרים קטנים יותר.";}
     }
     return "";
   },
   // הסבר צעד-אחר-צעד / step-by-step explanation
   explain(q){
-    if(q&&q.numword)return `${esc(q.tip||"")}<br>התשובה: <b>${esc(String(q.ans))}</b>`;
+    if(q&&(q.numword||q.gradeQ))return `${esc(q.tip||"")}<br>התשובה: <b>${esc(String(q.ans))}</b>`;
     const{op,a,b}=q,res=op==="+"?a+b:op==="-"?a-b:a*b;
     if(op==="+"){
       if(b<=10)return `בוא נספור יחד! מתחילים מ-<b>${a}</b> וסופרים עוד <b>${b}</b>:<br><span class="dots">${"🔵".repeat(Math.min(a,15))}${a>15?"…":""} + ${"🟡".repeat(b)}</span><br>${a} → ${Array.from({length:b},(_,i)=>a+i+1).join(" → ")}<br>התשובה: <b>${res}</b> 🎉`;
@@ -1030,20 +1190,20 @@ const EN_WORDS={
   vocab:[
     ew(1,"☀️","sun","שמש"),ew(1,"🌙","moon","ירח"),ew(1,"⭐","star","כוכב"),ew(1,"🏠","house","בית"),ew(1,"🌳","tree","עץ"),ew(1,"🚗","car","מכונית"),ew(1,"⚽","ball","כדור"),ew(1,"📕","book","ספר"),
     ew(2,"🏫","school","בית ספר"),ew(2,"🏙️","city","עיר"),ew(2,"🌧️","rain","גשם"),ew(2,"🌸","flower","פרח"),ew(2,"🏞️","park","פארק"),ew(2,"🏪","shop","חנות"),ew(2,"🏞️","river","נהר"),ew(2,"🧑","friend","חבר"),
-    ew(3,"🧳","journey","מסע"),ew(3,"⛅","weather","מזג אוויר"),ew(3,"🗣️","language","שפה"),ew(3,"🏘️","community","קהילה"),ew(3,"🚦","traffic","תנועה"),ew(3,"🏡","neighborhood","שכונה"),ew(3,"🌍","environment","סביבה"),ew(3,"🚪","opportunity","הזדמנות"),
-    ew(4,"🗳️","democracy","דמוקרטיה"),ew(4,"🎒","responsibility","אחריות"),ew(4,"🔭","perspective","נקודת מבט"),ew(4,"⚡","consequence","תוצאה"),ew(4,"🪪","identity","זהות"),ew(4,"🏛️","culture","תרבות"),ew(4,"💡","innovation","חדשנות"),ew(4,"🔬","hypothesis","השערה")
+    ew(3,"🔎","analyze","לנתח"),ew(3,"📎","evidence","ראיה"),ew(3,"🏁","conclude","להסיק"),ew(3,"🔢","variable","משתנה"),ew(3,"⚖️","argument","טיעון"),ew(3,"🔀","contrast","ניגוד"),ew(3,"📊","percentage","אחוז"),ew(3,"🧪","experiment","ניסוי"),
+    ew(4,"🧠","inference","הסקה"),ew(4,"📈","correlation","מתאם"),ew(4,"🔁","synthesis","סינתזה"),ew(4,"🌫️","ambiguity","עמימות"),ew(4,"📐","quadratic","ריבועי"),ew(4,"📉","logarithm","לוגריתם"),ew(4,"🔬","methodology","מתודולוגיה"),ew(4,"🪞","nuance","ניואנס")
   ],
   colors:[
     ew(1,"🔴","red","אדום"),ew(1,"🔵","blue","כחול"),ew(1,"🟡","yellow","צהוב"),ew(1,"🟢","green","ירוק"),ew(1,"1️⃣","one","אחת"),ew(1,"2️⃣","two","שתיים"),ew(1,"3️⃣","three","שלוש"),ew(1,"⚫","black","שחור"),
     ew(2,"🟠","orange","כתום"),ew(2,"🟣","purple","סגול"),ew(2,"⚪","white","לבן"),ew(2,"🩷","pink","ורוד"),ew(2,"4️⃣","four","ארבע"),ew(2,"5️⃣","five","חמש"),ew(2,"🔟","ten","עשר"),ew(2,"🟤","brown","חום"),
-    ew(3,"🩶","gray","אפור"),ew(3,"🥇","gold","זהב"),ew(3,"🥈","silver","כסף"),ew(3,"0️⃣","zero","אפס"),ew(3,"💯","hundred","מאה"),ew(3,"½","half","חצי"),ew(3,"👥","pair","זוג"),ew(3,"🥚","dozen","תריסר"),
-    ew(4,"🩵","turquoise","טורקיז"),ew(4,"🪟","transparent","שקוף"),ew(4,"🔢","thousand","אלף"),ew(4,"💠","million","מיליון"),ew(4,"🎨","shade","גוון"),ew(4,"💡","bright","בהיר"),ew(4,"🤍","pale","חיוור"),ew(4,"➗","fraction","שבר")
+    ew(3,"🔢","decimal","שבר עשרוני"),ew(3,"➖","negative","שלילי"),ew(3,"📏","estimate","הערכה"),ew(3,"📊","average","ממוצע"),ew(3,"➗","ratio","יחס"),ew(3,"💯","percent","אחוז"),ew(3,"🔢","integer","מספר שלם"),ew(3,"✖️","factor","גורם"),
+    ew(4,"⬆️","exponent","מעריך"),ew(4,"📉","logarithm","לוגריתם"),ew(4,"♾️","infinity","אינסוף"),ew(4,"📍","coordinate","קואורדינטה"),ew(4,"🌈","gradient","מדרג"),ew(4,"🪟","coefficient","מקדם"),ew(4,"📈","axis","ציר"),ew(4,"🧮","polynomial","פולינום")
   ],
   family:[
     ew(1,"👩","mom","אמא"),ew(1,"👨","dad","אבא"),ew(1,"👶","baby","תינוק"),ew(1,"👧","sister","אחות"),ew(1,"👦","brother","אח"),ew(1,"👵","grandma","סבתא"),ew(1,"👴","grandpa","סבא"),ew(1,"👪","family","משפחה"),
     ew(2,"👨","uncle","דוד"),ew(2,"👩","aunt","דודה"),ew(2,"🧒","cousin","בן דוד"),ew(2,"👨‍👩‍👧","parents","הורים"),ew(2,"👁️","eye","עין"),ew(2,"✋","hand","יד"),ew(2,"🦶","foot","רגל"),ew(2,"💇","hair","שיער"),
-    ew(3,"👦","nephew","אחיין"),ew(3,"👧","niece","אחיינית"),ew(3,"👪","relatives","קרובים"),ew(3,"💪","shoulder","כתף"),ew(3,"💪","elbow","מרפק"),ew(3,"🦵","knee","ברך"),ew(3,"👃","nose","אף"),ew(3,"👄","mouth","פה"),
-    ew(4,"👫","sibling","אח או אחות"),ew(4,"👴","ancestor","אב קדמון"),ew(4,"🌳","generation","דור"),ew(4,"⌚","wrist","שורש כף היד"),ew(4,"🦴","spine","עמוד שדרה"),ew(4,"🫁","lungs","ריאות"),ew(4,"💪","muscle","שריר"),ew(4,"💀","skeleton","שלד")
+    ew(3,"🧒","adolescence","גיל ההתבגרות"),ew(3,"🛡️","guardian","אפוטרופוס"),ew(3,"👪","relative","קרוב משפחה"),ew(3,"🧍","posture","יציבה"),ew(3,"🦴","cartilage","סחוס"),ew(3,"💪","tendon","גיד"),ew(3,"🦵","joint","מפרק"),ew(3,"❤️","circulation","מחזור הדם"),
+    ew(4,"🌳","genealogy","גנאלוגיה"),ew(4,"📜","inheritance","ירושה"),ew(4,"👶","descendant","צאצא"),ew(4,"🦴","vertebra","חוליה"),ew(4,"🫁","respiratory","נשימתי"),ew(4,"🧬","hereditary","תורשתי"),ew(4,"💪","ligament","רצועה"),ew(4,"💀","cranium","גולגולת")
   ],
   zoo:[
     ew(1,"🐱","cat","חתול","pets","meow"),ew(1,"🐶","dog","כלב","pets","woof"),ew(1,"🐰","rabbit","ארנב","pets","squeak"),
@@ -1062,47 +1222,47 @@ const EN_WORDS={
     ew(3,"🐊","crocodile","תנין","jungle","snap"),ew(3,"🦊","fox","שועל","jungle","yelp"),ew(3,"🐺","wolf","זאב","jungle","howl"),
     ew(3,"🦈","shark","כריש","sea","splash"),ew(3,"🐙","octopus","תמנון","sea","splash"),ew(3,"🦭","seal","כלב ים","sea","bark"),
     ew(3,"🦅","eagle","נשר","birds","screech"),ew(3,"🦩","flamingo","פלמינגו","birds","honk"),ew(3,"🦘","kangaroo","קנגורו","savanna","thump"),
-    ew(4,"🐨","koala","קואלה","pets","hum"),ew(4,"🦔","hedgehog","קיפוד","pets","snuffle"),
-    ew(4,"🦛","hippo","היפופוטם","savanna","grunt"),ew(4,"🐃","buffalo","תאו","savanna","bellow"),ew(4,"🐆","panther","פנתר","savanna","growl"),
-    ew(4,"🦍","gorilla","גורילה","jungle","hoot"),ew(4,"🦎","chameleon","זיקית","jungle","hiss"),ew(4,"🦂","scorpion","עקרב","jungle","click"),
-    ew(4,"🪼","jellyfish","מדוזה","sea","splash"),ew(4,"🦦","otter","לוטרה","sea","chirp"),
-    ew(4,"🦢","swan","ברבור","birds","honk"),ew(4,"🐦","pelican","שקנאי","birds","squawk")
+    ew(4,"🦫","platypus","ברווזן","pets","hum"),ew(4,"🦎","axolotl","אקסולוטל","pets","snuffle"),
+    ew(4,"🦒","okapi","אוקפי","savanna","hum"),ew(4,"🦏","tapir","טפיר","savanna","grunt"),ew(4,"🐆","pangolin","פנגולין","savanna","growl"),
+    ew(4,"🦧","orangutan","אורנגאוטן","jungle","hoot"),ew(4,"🦜","cassowary","קזואר","jungle","squawk"),ew(4,"🦂","scorpion","עקרב","jungle","click"),
+    ew(4,"🐋","narwhal","נרוול","sea","sing"),ew(4,"🦦","otter","לוטרה","sea","chirp"),
+    ew(4,"🦢","albatross","אלבטרוס","birds","honk"),ew(4,"🐦","pelican","שקנאי","birds","squawk")
   ],
   food:[
     ew(1,"🍎","apple","תפוח"),ew(1,"🍌","banana","בננה"),ew(1,"🥛","milk","חלב"),ew(1,"🍞","bread","לחם"),ew(1,"🥚","egg","ביצה"),ew(1,"💧","water","מים"),ew(1,"🍪","cake","עוגה"),ew(1,"🧃","juice","מיץ"),
     ew(2,"🍕","pizza","פיצה"),ew(2,"🥗","salad","סלט"),ew(2,"🍜","soup","מרק"),ew(2,"🍰","cake","עוגה"),ew(2,"🍇","grapes","ענבים"),ew(2,"🥕","carrot","גזר"),ew(2,"🧀","cheese","גבינה"),ew(2,"🍗","chicken","עוף"),
-    ew(3,"🥐","breakfast","ארוחת בוקר"),ew(3,"🥦","vegetable","ירק"),ew(3,"🍓","fruit","פרי"),ew(3,"😋","hungry","רעב"),ew(3,"🥤","thirsty","צמא"),ew(3,"🍰","dessert","קינוח"),ew(3,"📋","menu","תפריט"),ew(3,"🌶️","spicy","חריף"),
-    ew(4,"🥗","nutrition","תזונה"),ew(4,"🧂","ingredient","מרכיב"),ew(4,"🥕","vegetarian","צמחוני"),ew(4,"🍽️","portion","מנה"),ew(4,"💊","vitamin","ויטמין"),ew(4,"🥩","protein","חלבון"),ew(4,"🥤","beverage","משקה"),ew(4,"🍽️","appetite","תיאבון")
+    ew(3,"🍞","carbohydrate","פחמימה"),ew(3,"🥩","protein","חלבון"),ew(3,"🔥","calorie","קלוריה"),ew(3,"💊","vitamin","ויטמין"),ew(3,"🧂","mineral","מינרל"),ew(3,"📋","ingredient","מרכיב"),ew(3,"😋","appetite","תיאבון"),ew(3,"🥗","nutrition","תזונה"),
+    ew(4,"🔬","metabolism","מטבוליזם"),ew(4,"❤️","cholesterol","כולסטרול"),ew(4,"🫐","antioxidant","נוגד חמצון"),ew(4,"🫙","fermentation","תסיסה"),ew(4,"🍽️","cuisine","מטבח לאומי"),ew(4,"⚠️","deficiency","מחסור תזונתי"),ew(4,"🥛","pasteurization","פיסטור"),ew(4,"📉","malnutrition","תת-תזונה")
   ],
   furniture:[
     ew(1,"🪑","chair","כיסא"),ew(1,"🪵","table","שולחן"),ew(1,"🛏️","bed","מיטה"),ew(1,"🚪","door","דלת"),ew(1,"💡","lamp","מנורה"),ew(1,"🛋️","sofa","ספה"),ew(1,"🕒","clock","שעון"),ew(1,"🪟","window","חלון"),
     ew(2,"🪞","mirror","מראה"),ew(2,"🛏️","pillow","כרית"),ew(2,"🧣","blanket","שמיכה"),ew(2,"🪑","chair","כיסא"),ew(2,"🛏️","bed","מיטה"),ew(2,"🚪","door","דלת"),ew(2,"🧶","carpet","שטיח"),ew(2,"📚","shelf","מדף"),
-    ew(3,"🗄️","drawer","מגירה"),ew(3,"🚪","closet","ארון בגדים"),ew(3,"🛏️","mattress","מזרן"),ew(3,"🪑","armchair","כורסה"),ew(3,"☁️","ceiling","תקרה"),ew(3,"🟫","floor","רצפה"),ew(3,"🛋️","furniture","רהיטים"),ew(3,"📚","bookshelf","כוננית"),
-    ew(4,"👗","wardrobe","ארון בגדים גדול"),ew(4,"🛏️","nightstand","שידה"),ew(4,"💡","chandelier","נברשת"),ew(4,"🧵","upholstery","ריפוד"),ew(4,"🛏️","headboard","ראש מיטה"),ew(4,"🏠","interior","פנים הבית"),ew(4,"🪑","furnishings","ריהוט"),ew(4,"🪑","ottoman","הדום")
+    ew(3,"🌬️","ventilation","אוורור"),ew(3,"🧱","insulation","בידוד"),ew(3,"🏗️","foundation","יסוד"),ew(3,"🚪","threshold","סף"),ew(3,"🧱","partition","מחיצה"),ew(3,"💡","fixture","גוף תאורה קבוע"),ew(3,"🚶","corridor","מסדרון"),ew(3,"📐","blueprint","שרטוט"),
+    ew(4,"🏛️","atrium","אטריום"),ew(4,"🏛️","portico","פורטיקו"),ew(4,"🏗️","cantilever","זיז"),ew(4,"🏢","facade","חזית"),ew(4,"🪟","skylight","צוהר"),ew(4,"🧱","masonry","בנייה באבן"),ew(4,"🪜","balustrade","מעקה עמודים"),ew(4,"🏠","mezzanine","קומת ביניים")
   ],
   school:[
     ew(1,"🖊️","pen","עט"),ew(1,"✏️","pencil","עיפרון"),ew(1,"📕","book","ספר"),ew(1,"🎒","bag","תיק"),ew(1,"📏","ruler","סרגל"),ew(1,"🧼","eraser","מחק"),ew(1,"📓","notebook","מחברת"),ew(1,"🖍️","crayon","צבע"),
     ew(2,"📄","paper","נייר"),ew(2,"🧴","glue","דבק"),ew(2,"✂️","scissors","מספריים"),ew(2,"🖊️","pen","עט"),ew(2,"📕","book","ספר"),ew(2,"🎒","bag","תיק"),ew(2,"📁","folder","תיק"),ew(2,"🖊️","marker","טוש"),
-    ew(3,"📝","homework","שיעורי בית"),ew(3,"🧪","exam","מבחן"),ew(3,"📚","library","ספרייה"),ew(3,"📋","project","עבודה"),ew(3,"🧒","classmate","חבר לכיתה"),ew(3,"⏰","recess","הפסקה"),ew(3,"📘","subject","מקצוע"),ew(3,"💯","grade","ציון"),
-    ew(4,"🎓","lecture","הרצאה"),ew(4,"📅","semester","סמסטר"),ew(4,"📄","assignment","מטלה"),ew(4,"✍️","essay","חיבור"),ew(4,"🧪","laboratory","מעבדה"),ew(4,"🔬","research","מחקר"),ew(4,"🏅","scholarship","מלגה"),ew(4,"⏳","deadline","מועד אחרון")
+    ew(3,"📄","citation","ציטוט"),ew(3,"📚","bibliography","ביבליוגרפיה"),ew(3,"🎓","seminar","סמינר"),ew(3,"📘","curriculum","תכנית לימודים"),ew(3,"🧪","hypothesis","השערה"),ew(3,"➗","equation","משוואה"),ew(3,"📝","thesis","תזה"),ew(3,"🔎","analysis","ניתוח"),
+    ew(4,"📜","dissertation","דיסרטציה"),ew(4,"👥","peer review","ביקורת עמיתים"),ew(4,"📄","abstract","תקציר מדעי"),ew(4,"📎","footnote","הערת שוליים"),ew(4,"🏛️","symposium","סימפוזיון"),ew(4,"🔬","methodology","מתודולוגיה"),ew(4,"📐","calculus","חשבון דיפרנציאלי"),ew(4,"⏳","deadline","מועד אחרון")
   ],
   music:[
     ew(1,"🥁","drum","תוף"),ew(1,"🔔","bell","פעמון"),ew(1,"🎹","piano","פסנתר"),ew(1,"🪈","flute","חליל"),ew(1,"🎸","guitar","גיטרה"),ew(1,"🎶","song","שיר"),
     ew(2,"🥁","drum","תוף"),ew(2,"🔔","bell","פעמון"),ew(2,"🎹","piano","פסנתר"),ew(2,"🎸","guitar","גיטרה"),ew(2,"🎻","violin","כינור"),ew(2,"🎶","harp","נבל"),ew(2,"🎶","song","שיר"),ew(2,"🎺","horn","קרן"),
-    ew(3,"🎷","saxophone","סקסופון"),ew(3,"🎻","cello","צ׳לו"),ew(3,"🎺","trumpet","חצוצרה"),ew(3,"🎼","orchestra","תזמורת"),ew(3,"🎵","melody","מנגינה"),ew(3,"🥁","rhythm","קצב"),ew(3,"✍️","composer","מלחין"),ew(3,"🎤","concert","הופעה"),
-    ew(4,"🎼","symphony","סימפוניה"),ew(4,"🎩","conductor","מנצח"),ew(4,"🔁","rehearsal","חזרה"),ew(4,"🎶","harmony","הרמוניה"),ew(4,"🎸","acoustic","אקוסטי"),ew(4,"⏱️","tempo","טמפו"),ew(4,"🎹","octave","אוקטבה"),ew(4,"📈","crescendo","קרשנדו")
+    ew(3,"🎵","melody","מנגינה"),ew(3,"🥁","rhythm","קצב"),ew(3,"🎶","harmony","הרמוניה"),ew(3,"⏱️","tempo","טמפו"),ew(3,"🎹","octave","אוקטבה"),ew(3,"🎼","orchestra","תזמורת"),ew(3,"✍️","composer","מלחין"),ew(3,"📈","crescendo","קרשנדו"),
+    ew(4,"🎼","dissonance","דיסוננס"),ew(4,"🥁","syncopation","סינקופה"),ew(4,"🎶","counterpoint","קונטרפונקט"),ew(4,"🎵","cadence","קדנצה"),ew(4,"🎸","improvisation","אלתור"),ew(4,"📜","sonata","סונטה"),ew(4,"📖","libretto","ליברית"),ew(4,"🔔","timbre","גוון צליל")
   ],
   basic:[
     ew(1,"✅","yes","כן"),ew(1,"❌","no","לא"),ew(1,"👋","hello","שלום"),ew(1,"👋","bye","להתראות"),ew(1,"🙏","please","בבקשה"),ew(1,"🙏","thank you","תודה"),ew(1,"👍","good","טוב"),ew(1,"👎","bad","רע"),
     ew(2,"❓","what","מה"),ew(2,"👤","who","מי"),ew(2,"📍","where","איפה"),ew(2,"⏰","when","מתי"),ew(2,"🤔","why","למה"),ew(2,"🛠️","how","איך"),ew(2,"📅","today","היום"),ew(2,"🤝","friend","חבר"),
-    ew(3,"💡","because","כי"),ew(3,"🔁","always","תמיד"),ew(3,"🚫","never","אף פעם"),ew(3,"🌓","sometimes","לפעמים"),ew(3,"💯","enough","מספיק"),ew(3,"🤏","almost","כמעט"),ew(3,"🤷","maybe","אולי"),ew(3,"❗","really","באמת"),
-    ew(4,"➡️","therefore","לכן"),ew(4,"⚖️","however","אולם"),ew(4,"🧗","despite","למרות"),ew(4,"💭","perhaps","אולי"),ew(4,"📌","regarding","לגבי"),ew(4,"≈","approximately","בערך"),ew(4,"⭐","significant","משמעותי"),ew(4,"✅","essential","חיוני")
+    ew(3,"➡️","consequently","כתוצאה מכך"),ew(3,"⚖️","nevertheless","אף על פי כן"),ew(3,"🔀","whereas","בעוד ש"),ew(3,"🧪","hypothesis","השערה"),ew(3,"🔎","evaluate","להעריך"),ew(3,"✅","justify","להצדיק"),ew(3,"📖","interpret","לפרש"),ew(3,"💭","assumption","הנחה"),
+    ew(4,"➕","furthermore","יתר על כן"),ew(4,"🚫","notwithstanding","חרף"),ew(4,"⚖️","albeit","אם כי"),ew(4,"🧠","inference","הסקה"),ew(4,"📏","criterion","קריטריון"),ew(4,"🔗","implication","השלכה"),ew(4,"✅","validity","תוקף"),ew(4,"🏛️","paradigm","פרדיגמה")
   ],
   jobs:[
     ew(1,"👨‍🍳","chef","טבח"),ew(1,"✈️","pilot","טייס"),ew(1,"🩺","doctor","רופא"),ew(1,"🎤","singer","זמר"),ew(1,"🚗","driver","נהג"),ew(1,"👩‍🏫","teacher","מורה"),
     ew(2,"💉","nurse","אח"),ew(2,"🥖","baker","אופה"),ew(2,"🎨","artist","אמן"),ew(2,"👩‍🏫","teacher","מורה"),ew(2,"🩺","doctor","רופא"),ew(2,"🎤","singer","זמר"),ew(2,"🌾","farmer","חקלאי"),ew(2,"👮","police","שוטר"),
-    ew(3,"🚒","firefighter","כבאי"),ew(3,"👷","engineer","מהנדס"),ew(3,"🦷","dentist","רופא שיניים"),ew(3,"⚖️","lawyer","עורך דין"),ew(3,"📰","journalist","עיתונאי"),ew(3,"🔬","scientist","מדען"),ew(3,"📐","architect","אדריכל"),ew(3,"💻","programmer","מתכנת"),ew(3,"⚖️","judge","שופט"),ew(3,"💊","pharmacist","רוקח"),ew(3,"💡","electrician","חשמלאי"),
-    ew(4,"🏥","surgeon","מנתח"),ew(4,"🧠","psychologist","פסיכולוג"),ew(4,"📈","economist","כלכלן"),ew(4,"🤝","diplomat","דיפלומט"),ew(4,"🚀","entrepreneur","יזם"),ew(4,"📊","accountant","רואה חשבון"),ew(4,"🧬","biologist","ביולוג"),ew(4,"🚑","paramedic","פרמדיק")
+    ew(3,"📊","statistician","סטטיסטיקאי"),ew(3,"🔎","analyst","אנליסט"),ew(3,"📰","editor","עורך"),ew(3,"🧪","chemist","כימאי"),ew(3,"🌍","geologist","גיאולוג"),ew(3,"⚖️","magistrate","שופט שלום"),ew(3,"🗣️","linguist","בלשן"),ew(3,"💻","consultant","יועץ"),
+    ew(4,"🌌","astrophysicist","אסטרופיזיקאי"),ew(4,"🦠","epidemiologist","אפידמיולוג"),ew(4,"🔐","cryptographer","קריפטוגרף"),ew(4,"🧠","neuroscientist","מדען מוח"),ew(4,"🏺","anthropologist","אנתרופולוג"),ew(4,"🗺️","cartographer","קרטוגרף"),ew(4,"📜","archivist","ארכיונאי"),ew(4,"⚖️","jurist","משפטן")
   ]
 };
 const EN_SENT=[
@@ -1112,12 +1272,12 @@ const EN_SENT=[
   {g:2,gap:"I see a ___.",ans:"bird",full:"I see a bird.",he:"אני רואה ציפור.",opts:["bird","fish","book","milk"]},
   {g:2,gap:"We go to ___.",ans:"school",full:"We go to school.",he:"הולכים לבית הספר.",opts:["school","park","home","shop"]},
   {g:2,gap:"Open the ___.",ans:"door",full:"Open the door.",he:"תפתח את הדלת.",opts:["door","book","bag","milk"]},
-  {g:3,gap:"They are ___ today.",ans:"happy",full:"They are happy today.",he:"הם שמחים היום.",opts:["happy","library","shark","homework"]},
-  {g:3,gap:"I would like some ___.",ans:"water",full:"I would like some water.",he:"אני רוצה קצת מים.",opts:["water","project","elbow","melody"]},
-  {g:3,gap:"The teacher gives ___.",ans:"homework",full:"The teacher gives homework.",he:"המורה נותן שיעורי בית.",opts:["homework","ceiling","wolf","rhythm"]},
-  {g:4,gap:"We should protect the ___.",ans:"environment",full:"We should protect the environment.",he:"עלינו לשמור על הסביבה.",opts:["environment","surgeon","octave","wardrobe"]},
-  {g:4,gap:"A good leader takes ___.",ans:"responsibility",full:"A good leader takes responsibility.",he:"מנהיג טוב לוקח אחריות.",opts:["responsibility","jellyfish","tempo","essay"]},
-  {g:4,gap:"The scientist tested the ___.",ans:"hypothesis",full:"The scientist tested the hypothesis.",he:"המדען בדק את ההשערה.",opts:["hypothesis","diplomat","harmony","deadline"]}
+  {g:3,gap:"The class will ___ the results.",ans:"analyze",full:"The class will analyze the results.",he:"הכיתה תנתח את התוצאות.",opts:["analyze","evidence","percent","factor"]},
+  {g:3,gap:"There is not enough ___.",ans:"evidence",full:"There is not enough evidence.",he:"אין מספיק ראיות.",opts:["evidence","average","integer","decimal"]},
+  {g:3,gap:"First, state your ___.",ans:"hypothesis",full:"First, state your hypothesis.",he:"קודם נסחו השערה.",opts:["hypothesis","assumption","evaluate","ratio"]},
+  {g:4,gap:"The graph shows a strong ___.",ans:"correlation",full:"The graph shows a strong correlation.",he:"הגרף מראה מתאם חזק.",opts:["correlation","logarithm","nuance","paradigm"]},
+  {g:4,gap:"A careful reader notices the ___.",ans:"nuance",full:"A careful reader notices the nuance.",he:"קורא זהיר מבחין בניואנס.",opts:["nuance","ambiguity","synthesis","validity"]},
+  {g:4,gap:"The report explains the ___.",ans:"methodology",full:"The report explains the methodology.",he:"הדוח מסביר את המתודולוגיה.",opts:["methodology","inference","coefficient","symposium"]}
 ];
 Object.assign(OPNAME,{vocab:"אוצר מילים",colors:"צבעים ומספרים",family:"משפחה וגוף",spell:"איות",sentence:"משפטים",tr:"תרגום",zoo:"גן החיות",food:"אוכל",furniture:"רהיטים",school:"ציוד לבית הספר",music:"כלי נגינה",basic:"מילים בסיסיות",jobs:"מקצועות"});
 ACH.push({id:"en1",em:"🔤",name:"שלום אנגלית",d:"ענו נכון על מילה באנגלית",t:s=>EN_IDS.some(id=>s.skill[id]&&s.skill[id].ok>=1)});
@@ -1218,14 +1378,14 @@ const HE_READ=[
   {g:2,em:"🏫",word:"בית ספר",meaning:"מקום שלומדים בו",sent:"הילדים הגיעו לבית הספר.",sentAns:"הילדים באו ללמוד",sentTip:"בבית הספר לומדים."},
   {g:2,em:"🌙",word:"ירח",meaning:"מאיר בלילה",sent:"הירח זרח מעל הגג.",sentAns:"עכשיו לילה",sentTip:"הירח נראה בלילה."},
   {g:2,em:"🚲",word:"אופניים",meaning:"כלי עם שני גלגלים",sent:"רועי רוכב על אופניים.",sentAns:"רועי נוסע",sentTip:"רוכב על אופניים — נוסע."},
-  {g:3,em:"🔬",word:"ניסוי",meaning:"בדיקה כדי לגלות משהו",sent:"בשיעור מדעים ערכנו ניסוי.",sentAns:"בדקנו משהו",sentTip:"ניסוי הוא בדיקה."},
-  {g:3,em:"🗺️",word:"מפה",meaning:"ציור שמראה מקומות",sent:"הטיילים הסתכלו במפה.",sentAns:"חיפשו את הדרך",sentTip:"מפה מראה את הדרך."},
-  {g:3,em:"🌱",word:"שתיל",meaning:"צמח צעיר",sent:"שתלנו שתיל בגינה.",sentAns:"שתלנו צמח",sentTip:"שתיל הוא צמח צעיר."},
-  {g:3,em:"📝",word:"תקציר",meaning:"סיכום קצר",sent:"כתבתי תקציר לסיפור.",sentAns:"סיכמתי בקצרה",sentTip:"תקציר הוא סיכום קצר."},
-  {g:4,em:"⚖️",word:"אחריות",meaning:"חובה לעמוד מאחורי המעשה",sent:"המנהיג קיבל אחריות על ההחלטה.",sentAns:"הוא עומד מאחורי ההחלטה",sentTip:"לקבל אחריות פירושו לעמוד מאחורי ההחלטה."},
-  {g:4,em:"🔍",word:"השערה",meaning:"רעיון שעוד לא הוכח",sent:"המדען בדק את ההשערה.",sentAns:"בדק רעיון",sentTip:"השערה היא רעיון שבודקים."},
-  {g:4,em:"🤝",word:"פשרה",meaning:"הסכמה באמצע הדרך",sent:"הצדדים הגיעו לפשרה.",sentAns:"מצאו פתרון משותף",sentTip:"פשרה היא הסכמה באמצע."},
-  {g:4,em:"📜",word:"מקור",meaning:"המקום שממנו בא המידע",sent:"ציינו את המקור במאמר.",sentAns:"כתבו מאיפה המידע",sentTip:"מקור הוא המקום שממנו בא המידע."}
+  {g:3,em:"🔢",word:"משתנה",meaning:"גודל שיכול להשתנות במשוואה",sent:"במשוואה יש משתנה אחד.",sentAns:"יש גודל לא ידוע",sentTip:"משתנה הוא הגודל שמחפשים."},
+  {g:3,em:"📎",word:"ראיה",meaning:"פרט שתומך בטענה",sent:"הביאו ראיה לטענה.",sentAns:"חיזקו את הטענה",sentTip:"ראיה תומכת בטענה."},
+  {g:3,em:"🏁",word:"מסקנה",meaning:"מה שמסיקים בסוף",sent:"בסוף הניסוי כתבו מסקנה.",sentAns:"סיכמו מה למדו",sentTip:"מסקנה היא מה שמסיקים מהממצאים."},
+  {g:3,em:"⚖️",word:"טיעון",meaning:"נימוק שמגן על עמדה",sent:"היא בנתה טיעון עם שתי ראיות.",sentAns:"היא נימקה עמדה",sentTip:"טיעון הוא נימוק, לא רק דעה."},
+  {g:4,em:"🧠",word:"הסקה",meaning:"מסקנה שלא כתובה במפורש",sent:"הקורא נדרש להסקה.",sentAns:"צריך להבין מעבר לכתוב",sentTip:"הסקה היא מסקנה שהקורא בונה."},
+  {g:4,em:"📈",word:"מתאם",meaning:"קשר בין שני משתנים",sent:"הגרף מראה מתאם חזק.",sentAns:"שני הדברים משתנים יחד",sentTip:"מתאם הוא קשר, לא בהכרח סיבה."},
+  {g:4,em:"🌫️",word:"עמימות",meaning:"אפשרות ליותר מפירוש אחד",sent:"הניסוח נשאר בעמימות.",sentAns:"אפשר להבין ביותר מדרך אחת",sentTip:"עמימות פירושה שהמשמעות לא חד-משמעית."},
+  {g:4,em:"🔬",word:"מתודולוגיה",meaning:"הדרך שבה נערך המחקר",sent:"המאמר פירט את המתודולוגיה.",sentAns:"הסבירו איך חקרו",sentTip:"מתודולוגיה היא שיטת העבודה של המחקר."}
 ];
 const HE_SPELL=[
   {g:1,kind:"miss",show:"ח_ול",ans:"ת",word:"חתול",tip:"חתול נכתב ב-ת, לא ב-ט."},
@@ -1244,22 +1404,22 @@ const HE_SPELL=[
   {g:2,kind:"conf",ans:"מתנה",wrong:"מטנה",tip:"מתנה נכתבת ב-ת."},
   {g:2,kind:"conf",ans:"כיתה",wrong:"קיתה",tip:"כיתה מתחילה ב-כ."},
   {g:2,kind:"conf",ans:"סוס",wrong:"שוס",tip:"סוס נכתב ב-ס, לא ב-ש."},
-  {g:3,kind:"miss",show:"מח_ב",ans:"ש",word:"מחשב",tip:"מחשב נכתב ב-ש."},
-  {g:3,kind:"miss",show:"ס_רייה",ans:"פ",word:"ספרייה",tip:"ספרייה נכתבת עם פ."},
-  {g:3,kind:"miss",show:"תלמ_ד",ans:"י",word:"תלמיד",tip:"תלמיד נכתב עם י."},
-  {g:3,kind:"miss",show:"ש_עור",ans:"י",word:"שיעור",tip:"שיעור נכתב עם י אחרי השי״ן."},
-  {g:3,kind:"conf",ans:"עיר",wrong:"איר",tip:"עיר מתחילה ב-ע."},
-  {g:3,kind:"conf",ans:"מטבח",wrong:"מתבח",tip:"מטבח נכתב ב-ט."},
-  {g:3,kind:"conf",ans:"כובע",wrong:"קובע",tip:"כובע מתחיל ב-כ."},
-  {g:3,kind:"conf",ans:"שמחה",wrong:"סמחה",tip:"שמחה מתחילה ב-ש."},
-  {g:4,kind:"miss",show:"אח_יות",ans:"ר",word:"אחריות",tip:"אחריות נכתבת עם ר."},
-  {g:4,kind:"miss",show:"השע_ה",ans:"ר",word:"השערה",tip:"השערה נכתבת עם ר."},
-  {g:4,kind:"miss",show:"א_רחות",ans:"ז",word:"אזרחות",tip:"אזרחות נכתבת עם ז."},
-  {g:4,kind:"miss",show:"ז_הות",ans:"ה",word:"זהות",tip:"זהות: ז, ה, ו, ת."},
-  {g:4,kind:"conf",ans:"עברית",wrong:"אברית",tip:"עברית מתחילה ב-ע."},
-  {g:4,kind:"conf",ans:"מתמטיקה",wrong:"מטמטיקה",tip:"מתמטיקה נכתבת ב-ת אחרי המ״ם."},
-  {g:4,kind:"conf",ans:"קריאה",wrong:"כריאה",tip:"קריאה מתחילה ב-ק."},
-  {g:4,kind:"conf",ans:"ממשלה",wrong:"ממסלה",tip:"ממשלה נכתבת ב-ש."}
+  {g:3,kind:"miss",show:"משת_ה",ans:"נ",word:"משתנה",tip:"משתנה נכתב עם נ."},
+  {g:3,kind:"miss",show:"מסק_ה",ans:"נ",word:"מסקנה",tip:"מסקנה נכתבת עם נ."},
+  {g:3,kind:"miss",show:"השע_ה",ans:"ר",word:"השערה",tip:"השערה נכתבת עם ר."},
+  {g:3,kind:"miss",show:"רא_ה",ans:"י",word:"ראיה",tip:"ראיה נכתבת עם י."},
+  {g:3,kind:"conf",ans:"משוואה",wrong:"משאוה",tip:"משוואה נכתבת עם ו אחרי השי״ן."},
+  {g:3,kind:"conf",ans:"ניתוח",wrong:"ניטוח",tip:"ניתוח נכתב ב-ת, לא ב-ט."},
+  {g:3,kind:"conf",ans:"השערה",wrong:"הסערה",tip:"השערה נכתבת ב-ש, לא ב-ס."},
+  {g:3,kind:"conf",ans:"אחוז",wrong:"אכוז",tip:"אחוז נכתב ב-ח."},
+  {g:4,kind:"miss",show:"מתודולוג_ה",ans:"י",word:"מתודולוגיה",tip:"מתודולוגיה נכתבת עם י לפני הה״א."},
+  {g:4,kind:"miss",show:"עמימ_ת",ans:"ו",word:"עמימות",tip:"עמימות נכתבת עם ו."},
+  {g:4,kind:"miss",show:"הס_ה",ans:"ק",word:"הסקה",tip:"הסקה נכתבת עם ק."},
+  {g:4,kind:"miss",show:"מת_ם",ans:"א",word:"מתאם",tip:"מתאם נכתב עם א."},
+  {g:4,kind:"conf",ans:"מתודולוגיה",wrong:"מתדולוגיה",tip:"מתודולוגיה נכתבת עם ו אחרי הלמ״ד."},
+  {g:4,kind:"conf",ans:"לוגריתם",wrong:"לוגריטם",tip:"לוגריתם נכתב עם י אחרי הרי״ש."},
+  {g:4,kind:"conf",ans:"קואורדינטה",wrong:"קוארדינטה",tip:"קואורדינטה נכתבת עם ו אחרי האל״ף."},
+  {g:4,kind:"conf",ans:"פרדיגמה",wrong:"פרדיגמא",tip:"פרדיגמה נכתבת בה״א בסוף."}
 ];
 const HE_LETTERS=["א","ב","ג","ד","ה","ו","ז","ח","ט","י","כ","ל","מ","נ","ס","ע","פ","צ","ק","ר","ש","ת"];
 const HE_VOCAB=[
@@ -1275,18 +1435,18 @@ const HE_VOCAB=[
   {g:2,kind:"opp",word:"התחלה",ans:"סיום",tip:"סיום הוא ההפך של התחלה."},
   {g:2,kind:"syn",word:"מהר",ans:"בזריזות",tip:"בזריזות פירושו מהר."},
   {g:2,kind:"opp",word:"רטוב",ans:"יבש",tip:"יבש הוא ההפך של רטוב."},
-  {g:3,kind:"syn",word:"חכם",ans:"נבון",tip:"נבון דומה למילה חכם."},
-  {g:3,kind:"syn",word:"קשה",ans:"מסובך",tip:"מסובך דומה למילה קשה."},
-  {g:3,kind:"opp",word:"הצלחה",ans:"כישלון",tip:"כישלון הוא ההפך של הצלחה."},
-  {g:3,kind:"opp",word:"עתיק",ans:"חדש",tip:"חדש הוא ההפך של עתיק."},
-  {g:3,kind:"syn",word:"שקט",ans:"דממה",tip:"דממה היא שקט."},
-  {g:3,kind:"opp",word:"אומץ",ans:"פחד",tip:"פחד הוא ההפך של אומץ."},
-  {g:4,kind:"syn",word:"אחריות",ans:"מחויבות",tip:"מחויבות דומה לאחריות."},
-  {g:4,kind:"syn",word:"מדויק",ans:"מדוקדק",tip:"מדוקדק דומה למדויק."},
-  {g:4,kind:"opp",word:"שפע",ans:"מחסור",tip:"מחסור הוא ההפך של שפע."},
-  {g:4,kind:"opp",word:"גלוי",ans:"סמוי",tip:"סמוי הוא ההפך של גלוי."},
-  {g:4,kind:"syn",word:"תמציתי",ans:"קצר",tip:"ניסוח תמציתי הוא קצר."},
-  {g:4,kind:"opp",word:"זמני",ans:"קבוע",tip:"קבוע הוא ההפך של זמני."}
+  {g:3,kind:"syn",word:"לנתח",ans:"לפרק לגורמים",tip:"לנתח פירושו לפרק לגורמים."},
+  {g:3,kind:"syn",word:"ראיה",ans:"הוכחה חלקית",tip:"ראיה תומכת, כמו הוכחה חלקית."},
+  {g:3,kind:"opp",word:"מופשט",ans:"מוחשי",tip:"מוחשי הוא ההפך של מופשט."},
+  {g:3,kind:"opp",word:"סיבה",ans:"תוצאה",tip:"תוצאה באה אחרי הסיבה, והיא אינה הסיבה."},
+  {g:3,kind:"syn",word:"מסקנה",ans:"היסק",tip:"היסק דומה למסקנה."},
+  {g:3,kind:"opp",word:"אובייקטיבי",ans:"סובייקטיבי",tip:"סובייקטיבי הוא ההפך של אובייקטיבי."},
+  {g:4,kind:"syn",word:"עמימות",ans:"דו-משמעות",tip:"דו-משמעות דומה לעמימות."},
+  {g:4,kind:"syn",word:"מתאם",ans:"קשר סטטיסטי",tip:"מתאם הוא קשר סטטיסטי בין משתנים."},
+  {g:4,kind:"opp",word:"אנליטי",ans:"אינטואיטיבי",tip:"אינטואיטיבי הוא ההפך של אנליטי."},
+  {g:4,kind:"opp",word:"מפורש",ans:"משתמע",tip:"משתמע הוא מה שלא נאמר במפורש."},
+  {g:4,kind:"syn",word:"ניואנס",ans:"הבדל דק",tip:"ניואנס הוא הבדל דק."},
+  {g:4,kind:"opp",word:"תקף",ans:"בטל",tip:"טיעון בטל הוא ההפך מטיעון תקף."}
 ];
 const HE_NIKUD=[
   {g:1,plain:"בית",nik:"\u05d1\u05b7\u05d9\u05b4\u05ea",bad:"\u05d1\u05b5\u05d9\u05ea",tip:"בַּיִת: פתח בבי״ת וחיריק ביו״ד."},
@@ -1307,35 +1467,35 @@ const HE_GRAM=[
   {g:2,prompt:"השלימו לפי המספר.",show:"הילדים ___ בחצר.",ans:"משחקים",opts:["משחק","משחקת","משחקות"],tip:"ילדים הוא רבים, לכן משחקים.",speak:"הילדים משחקים בחצר"},
   {g:2,prompt:"השלימו לפי המין והמספר.",show:"הבנות ___ שיר.",ans:"שרות",opts:["שר","שרה","שרים"],tip:"בנות הן נקבה רבות, לכן שרות.",speak:"הבנות שרות שיר"},
   {g:2,prompt:"השלימו לפי המין.",show:"הספר ___ על השולחן.",ans:"מונח",opts:["מונחת","מונחים","מונחות"],tip:"ספר הוא זכר יחיד, לכן מונח.",speak:"הספר מונח על השולחן"},
-  {g:3,prompt:"בחרו את הזמן הנכון.",show:"אתמול אני ___ ספר.",ans:"קראתי",opts:["קורא","אקרא","קראה"],tip:"אתמול מסמן עבר: קראתי.",speak:"אתמול אני קראתי ספר"},
-  {g:3,prompt:"בחרו את הזמן הנכון.",show:"מחר אנחנו ___ למשחק.",ans:"נלך",opts:["הולכים","הלכנו","הלכו"],tip:"מחר מסמן עתיד: נלך.",speak:"מחר אנחנו נלך למשחק"},
-  {g:3,prompt:"בחרו את הזמן הנכון.",show:"עכשיו היא ___ מכתב.",ans:"כותבת",opts:["כתבה","תכתוב","כותב"],tip:"עכשיו הוא הווה, והיא נקבה: כותבת.",speak:"עכשיו היא כותבת מכתב"},
-  {g:3,prompt:"מה השורש?",show:"השורש של כתב",ans:"כ.ת.ב",opts:["ל.מ.ד","ש.מ.ר","ק.ר.א"],tip:"כתב, מכתב וכתיבה באים מן השורש כ.ת.ב.",speak:"כתב"},
-  {g:3,prompt:"מילה מאותו שורש.",show:"למד",ans:"לימוד",opts:["שמירה","כתיבה","קריאה"],tip:"לימוד בא מן השורש ל.מ.ד, כמו למד.",speak:"לימוד"},
-  {g:4,prompt:"בחרו את הזמן הנכון.",show:"אתמול הם ___ את החוק.",ans:"שמרו",opts:["שומרים","ישמרו","שמרה"],tip:"אתמול + הם = עבר רבים: שמרו.",speak:"אתמול הם שמרו את החוק"},
-  {g:4,prompt:"בחרו את הזמן הנכון.",show:"בעוד שנה היא ___ רופאה.",ans:"תהיה",opts:["הייתה","היה","יהיו"],tip:"בעוד שנה הוא עתיד, והיא נקבה: תהיה.",speak:"בעוד שנה היא תהיה רופאה"},
-  {g:4,prompt:"מה השורש?",show:"הפועל התכתב",ans:"כ.ת.ב",opts:["ל.מ.ד","ש.מ.ר","ד.ב.ר"],tip:"התכתב בא מן השורש כ.ת.ב.",speak:"התכתב"},
-  {g:4,prompt:"שם הפעולה.",show:"לשמור",ans:"שמירה",opts:["כתיבה","לימוד","קריאה"],tip:"שם הפעולה של לשמור הוא שמירה.",speak:"שמירה"}
+  {g:3,prompt:"בחרו את הבניין.",show:"המורה ___ את התלמידים (הפעיל).",ans:"הפעיל",opts:["פעל","הופעל","התפעל"],tip:"הפעיל הוא בניין הפעיל: מישהו גורם לפעולה.",speak:"המורה הפעיל את התלמידים"},
+  {g:3,prompt:"בחרו את הבניין.",show:"הניסוי ___ במעבדה (הופעל).",ans:"הופעל",opts:["הפעיל","פעל","התפעל"],tip:"הופעל הוא סביל של הפעיל.",speak:"הניסוי הופעל במעבדה"},
+  {g:3,prompt:"מה השורש?",show:"השורש של השתתף",ans:"ש.ת.פ",opts:["כ.ת.ב","ל.מ.ד","ס.ק.ר"],tip:"השתתף בא מן השורש ש.ת.פ.",speak:"השתתף"},
+  {g:3,prompt:"שם הפעולה.",show:"להסיק",ans:"הסקה",opts:["שמירה","כתיבה","קריאה"],tip:"שם הפעולה של להסיק הוא הסקה.",speak:"הסקה"},
+  {g:3,prompt:"השלימו את הזמן.",show:"אילו ידענו, ___ אחרת.",ans:"היינו נוהגים",opts:["נוהגים","נהגנו","ננהג"],tip:"אילו + עבר דורש היינו + בינוני.",speak:"אילו ידענו היינו נוהגים אחרת"},
+  {g:4,prompt:"בחרו את הצורה.",show:"המאמר ___ אתמול (נפעל).",ans:"נכתב",opts:["כתב","הכתיב","התכתב"],tip:"נכתב הוא סביל: המאמר נכתב.",speak:"המאמר נכתב אתמול"},
+  {g:4,prompt:"מה השורש?",show:"הפועל התמצה",ans:"מ.צ.ה",opts:["כ.ת.ב","ס.ק.ר","ד.ב.ר"],tip:"התמצה בא מן השורש מ.צ.ה.",speak:"התמצה"},
+  {g:4,prompt:"שם הפעולה.",show:"להסיק מסקנה",ans:"הסקה",opts:["מסקנה","ניתוח","ציטוט"],tip:"שם הפעולה הוא הסקה. מסקנה היא שם עצם אחר.",speak:"הסקה"},
+  {g:4,prompt:"השלימו משפט מורכב.",show:"חרף הראיות, המסקנה ___.",ans:"נותרה שנויה במחלוקת",opts:["הייתה ברורה לכולם","בוטלה אתמול","נכתבה בלי נימוק"],tip:"חרף פירושו למרות: הראיות לא סגרו את הוויכוח.",speak:"חרף הראיות המסקנה נותרה שנויה במחלוקת"}
 ];
 const HE_COMP=[
   {g:1,passage:"דנה קמה בבוקר. היא אכלה תפוח והלכה לבית הספר עם תיק אדום.",q:"מה דנה אכלה?",ans:"תפוח",opts:["לחם","גבינה","עוגה"],tip:"בסיפור כתוב שדנה אכלה תפוח."},
   {g:1,passage:"יוסי ראה כלב קטן ליד הבית. הוא נתן לו מים.",q:"מה יוסי נתן לכלב?",ans:"מים",opts:["לחם","כדור","חלב"],tip:"יוסי נתן לכלב מים."},
   {g:2,passage:"הגשם ירד כל היום. הילדים נשארו בכיתה וציירו קשת.",q:"למה הילדים נשארו בכיתה?",ans:"כי ירד גשם",opts:["כי היה חג","כי הלכו לטיול","כי נגמר היום"],tip:"הגשם ירד, ולכן נשארו בכיתה."},
   {g:2,passage:"בגן גדל עץ גבוה. מתחתיו יש ספסל, ושם יושבת סבתא וקוראת.",q:"איפה יושבת סבתא?",ans:"על הספסל",opts:["על הגג","בתוך הכיתה","ליד הים"],tip:"הספסל נמצא מתחת לעץ, ושם סבתא יושבת."},
-  {g:3,passage:"בשיעור מדעים בדקו אם קרח נמס מהר יותר בשמש או בצל. אחרי עשר דקות נשאר יותר קרח בצל.",q:"איפה הקרח נמס לאט יותר?",ans:"בצל",opts:["בשמש","בכיס","בתיק"],tip:"נשאר יותר קרח בצל, לכן שם הוא נמס לאט יותר."},
-  {g:3,passage:"נועה כתבה תקציר: גיבור עוזר לחבר למצוא את הדרך הביתה.",q:"על מה הסיפור?",ans:"עזרה לחבר למצוא את הדרך",opts:["משחק כדורגל","יום גשום","קניית ספר"],tip:"התקציר מספר על עזרה לחבר."},
-  {g:4,passage:"הוועדה דנה בהצעה. חלק תמכו, אחרים התנגדו, ולבסוף התקבלה פשרה.",q:"איך נגמר הדיון?",ans:"התקבלה פשרה",opts:["כולם התנגדו","ההצעה בוטלה","לא התקיים דיון"],tip:"בסוף הקטע כתוב שהתקבלה פשרה."},
-  {g:4,passage:"החוקרת הציגה השערה, ואז תכננה ניסוי כדי לבדוק אותה. כל תוצאה נרשמה במחברת.",q:"לשם מה תוכנן הניסוי?",ans:"כדי לבדוק את ההשערה",opts:["כדי לצייר מפה","כדי לבטל את המחברת","כדי לסגור את המעבדה"],tip:"הניסוי נועד לבדוק את ההשערה."}
+  {g:3,passage:"הכיתה בדקה אם צמחים ליד החלון גדלים יותר מצמחים בארון. אחרי שבוע הצמחים בארון היו נמוכים יותר, אף שקיבלו אותה כמות מים.",q:"מה אפשר להסיק?",ans:"האור קשור לגובה הצמחים",opts:["המים גרמו להבדל","הארון מהיר יותר","אין כאן הבדל"],tip:"המים זהים, וההבדל הוא המקום עם האור."},
+  {g:3,passage:"נועה טענה שהמבחן היה קשה כי הממוצע ירד. דני אמר שייתכן שהכיתה לא למדה. אין בקטע נתון על שעות הלימוד.",q:"איזו טענה חסרה ראיה?",ans:"הטענה על שעות הלימוד",opts:["הטענה שהממוצע ירד","הטענה שיש מבחן","הטענה שנועה דיברה"],tip:"על שעות הלימוד אין נתון, לכן זו השערה ולא ראיה."},
+  {g:4,passage:"שני משתנים עלו יחד בגרף, והכותב הסיק שאחד גורם לשני. המבקרת ציינה שמתאם לבדו אינו מוכיח סיבה.",q:"מה טענת המבקרת?",ans:"מתאם אינו מוכיח סיבה",opts:["הגרף שגוי בחישוב","אין כלל קשר בין המשתנים","צריך למחוק את שני המשתנים"],tip:"המבקרת מבחינה בין קשר סטטיסטי לבין סיבתיות."},
+  {g:4,passage:"המאמר פירט מדגם קטן וויתר על קבוצת ביקורת. בסופו נכתבה מסקנה נחרצת. הקורא מתבקש לבדוק אם השיטה תומכת במסקנה.",q:"מה חולשת המתודולוגיה?",ans:"מדגם קטן בלי קבוצת ביקורת",opts:["המסקנה קצרה מדי","אין במאמר כותרת","הקורא לא יודע לקרוא"],tip:"מדגם קטן והיעדר ביקורת מחלישים מסקנה נחרצת."}
 ];
 const HE_IDIOM=[
-  {g:3,idiom:"יצא לו העוקץ",ans:"איבד את הכוח או את הטעם",opts:["התחיל לרוץ","מצא מטמון","בישל מרק"],tip:"כשיצא העוקץ, הדבר כבר לא חזק ולא מפתיע."},
-  {g:3,idiom:"קצרה ידו",ans:"אין לו יכולת לעזור",opts:["היד שלו קצרה במדידה","הוא מנצח בקלות","הוא כותב מהר"],tip:"קצרה ידו פירושו שאין לו אפשרות לעזור."},
-  {g:3,idiom:"נפל בין הכיסאות",ans:"אף אחד לא טיפל בעניין",opts:["ישב על כיסא","קנה רהיטים","ניצח במשחק"],tip:"נפל בין הכיסאות — העניין נשכח בין כולם."},
-  {g:3,idiom:"שבר את הראש",ans:"חשב הרבה כדי למצוא פתרון",opts:["נפצע במשחק","שבר כוס","ויתר מיד"],tip:"שבר את הראש פירושו שהתאמץ לחשוב."},
-  {g:4,idiom:"יצא ידי חובה",ans:"עשה רק את מה שחייבים",opts:["עשה מעל ומעבר","יצא לטיול","שילם כפול"],tip:"יצא ידי חובה — הסתפק במינימום הנדרש."},
-  {g:4,idiom:"טמן את ידו בצלחת",ans:"לא עזר ולא השתתף",opts:["בישל ארוחה","עזר לכולם","שבר את הצלחת"],tip:"טמן את ידו בצלחת פירושו שישן בעמידה ולא תרם."},
-  {g:4,idiom:"עשה שמות",ans:"גרם נזק גדול",opts:["נתן שמות חדשים","סידר את החדר","כתב רשימה"],tip:"עשה שמות פירושו זרע הרס."},
-  {g:4,idiom:"בא בטענות",ans:"התלונן והאשים",opts:["הביא מתנה","הסכים מיד","שתק כל הזמן"],tip:"בא בטענות — בא להתלונן."}
+  {g:3,idiom:"יצא חוצץ",ans:"התנגד בתוקף",opts:["יצא להפסקה","הסכים בשקט","מצא קיצור דרך"],tip:"יצא חוצץ פירושו התנגד בחריפות."},
+  {g:3,idiom:"שם נפשו בכפו",ans:"סיכן את עצמו",opts:["שטף את הידיים","ויתר בלי מאמץ","כתב רשימה"],tip:"שם נפשו בכפו — לקח סיכון ממשי."},
+  {g:3,idiom:"הלך סחור סחור",ans:"דיבר בלי להגיע לעיקר",opts:["הלך בקו ישר","ענה בקצרה","מצא את הדרך"],tip:"הלך סחור סחור פירושו סובב סביב הנושא."},
+  {g:3,idiom:"עלה על שרטון",ans:"נתקע ולא התקדם",opts:["הפליג מהר","סיים בהצלחה","מצא אוצר"],tip:"עלה על שרטון — העניין נתקע."},
+  {g:4,idiom:"יש לחלק בין עיקר לטפל",ans:"להבדיל בין החשוב לשולי",opts:["לחלק עוגה שווה בשווה","למחוק את שניהם","לכתוב רק את השולי"],tip:"עיקר הוא העיקר, טפל הוא מה ששולי."},
+  {g:4,idiom:"טען לכתר שאינו שלו",ans:"לקח קרדיט לא לו",opts:["קנה כתר בחנות","ויתר על הפרס","כתב מקור מדויק"],tip:"טען לכתר שאינו שלו — ייחס לעצמו הישג של אחר."},
+  {g:4,idiom:"בנה מגדל באוויר",ans:"בנה טיעון בלי בסיס",opts:["בנה בית אמיתי","הביא ראיות מוצקות","מדד את הגובה"],tip:"מגדל באוויר הוא טענה בלי יסוד."},
+  {g:4,idiom:"קרא את הנקרא בין השורות",ans:"הבין את מה שלא נכתב במפורש",opts:["קרא רק את השורה הראשונה","דילג על כל הטקסט","העתיק מילה במילה"],tip:"בין השורות נמצא מה שמשתמע ולא מה שמפורש."}
 ];
 function heRead(ctx){
   const level=ctx.level||1,g=gradeOfHe(),rows=hePool(HE_READ,g,level),w=AI.pick(rows),n=ctx.n||0;
@@ -1509,7 +1669,7 @@ const GRADE_NAMES=["","א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ז׳","ח׳","�
 function bandGrades(id){if(id==="56")return [5,6];if(id==="79")return [7,8,9];if(id==="1012")return [10,11,12];return [3,4];}
 function gradeInBand(id,level){const g=bandGrades(id);const lv=Math.max(1,Math.min(6,Math.round(level)||1));const i=Math.min(g.length-1,Math.floor((lv-1)/(6/g.length)));return g[i];}
 function avgSkill(ids){if(!ids||!ids.length||!S||!S.skill)return 1;let s=0;ids.forEach(id=>{const k=S.skill[id];s+=(k&&k.level)||1;});return s/ids.length;}
-function schoolGrade(){const math=avgSkill(["+","-","×"]);const mathGrade=Math.max(1,Math.min(8,2+Math.round(math)));const en=gradeInBand(S&&S.enGrade,avgSkill(typeof EN_IDS!=="undefined"?EN_IDS:[]));const he=gradeInBand(S&&S.heGrade,avgSkill(typeof HE_IDS!=="undefined"?HE_IDS:[]));return Math.max(mathGrade,en,he);}
+function schoolGrade(){const math=avgSkill(["+","-","×"]);const mathGrade=Math.max(3,Math.min(12,2+Math.round(math)));const en=gradeInBand(S&&S.enGrade,avgSkill(typeof EN_IDS!=="undefined"?EN_IDS:[]));const he=gradeInBand(S&&S.heGrade,avgSkill(typeof HE_IDS!=="undefined"?HE_IDS:[]));return Math.max(mathGrade,en,he);}
 function paintGradeBadge(){const el=$("gradePill");if(!el)return;const n=schoolGrade();el.textContent="🎓 כיתה "+(GRADE_NAMES[n]||GRADE_NAMES[3]);placeGradeBadge();}
 function placeGradeBadge(){const el=$("gradePill");if(!el)return;const hdr=$("hdr");const on=hdr&&hdr.classList.contains("on");el.style.top=on?(Math.ceil(hdr.getBoundingClientRect().bottom)+2)+"px":"8px";}
 function hud(){const xp=xpState();$("sCoins").textContent="🪙 "+S.coins;$("sPts").textContent="⭐ "+S.points;$("sStreak").textContent="🔥 "+S.streak;
@@ -1687,7 +1847,7 @@ async function nextQ(){
   showQuestion($("qText"),q);
   $("explain").style.display="none";
   $("aiDebug").style.display=S.settings.showAI?"block":"none";
-  $("aiDebug").textContent=`🤖 מוח ה-AI: ${OPNAME[q.op]} · רמה ${q.lvl}/6 · דיוק אחרון ${Math.round(AI.accuracy(q.op)*100)}% · זמן ממוצע ${AI.avgTime(q.op).toFixed(1)} שנ׳`;
+  $("aiDebug").textContent=`🤖 מוח ה-AI: ${OPNAME[q.op]} · רמה ${q.lvl}/${q.op==="+"||q.op==="-"||q.op==="×"?10:6} · דיוק אחרון ${Math.round(AI.accuracy(q.op)*100)}% · זמן ממוצע ${AI.avgTime(q.op).toFixed(1)} שנ׳`;
   renderAnswer($("qArea"),q,(v,b)=>answer(v,b));
   renderPups($("pups"),usePup);$("card").classList.toggle("shieldOn",G.shield);
   if(G.mode==="boss"){ // שעון לכל שאלה בבוס / per-question boss timer
@@ -1696,7 +1856,7 @@ async function nextQ(){
   }
 }
 function renderAnswer(area,q,cb){
-  if(q.type==="choice"||((q.lang==="en"||q.lang==="he")&&q.choices)){const opts=q.choices||AI.choices(q);const ltr=(q.lang==="en"&&q.choiceDir!=="rtl")||q.choiceDir==="ltr";const word=q.lang==="en"||q.lang==="he"||q.choiceDir==="ltr";
+  if(q.type==="choice"||q.choices||((q.lang==="en"||q.lang==="he")&&q.choices)){const opts=q.choices||AI.choices(q);const ltr=(q.lang==="en"&&q.choiceDir!=="rtl")||q.choiceDir==="ltr";const word=q.lang==="en"||q.lang==="he"||q.choiceDir==="ltr";
     area.innerHTML=`<div class="choices" ${ltr?'dir="ltr"':word?'dir="rtl"':""}>${opts.map(c=>`<button type="button" data-v="${escAttr(c)}" ${q.lang==="en"?(ltr?'class="en" dir="ltr"':'dir="rtl"'):q.lang==="he"?'class="he" dir="rtl"':q.choiceDir==="ltr"?'dir="ltr"':""}>${word?esc(String(c)):c}</button>`).join("")}</div>`;
     area.querySelectorAll("button").forEach(b=>b.onclick=()=>cb(readChoice(q,b.dataset.v),b));}
   else{area.innerHTML=`<input class="ans" type="number" inputmode="numeric" autocomplete="off"> <button class="btn">בדוק ✔️</button>`;
@@ -2225,7 +2385,7 @@ function renderBadges(){show("badgesScreen");$("badgeGrid").innerHTML=ACH.map(b=
 function renderStats(){show("statsScreen");const tot=S.totalCorrect+S.totalWrong;
   $("statsBox").innerHTML=`<h3>${heroHTML()} ${esc(S.name)} ${S.equipped.title?`<small class="titleTag">${esc(titleName())}</small>`:""}</h3><table class="st">
    <tr><th>פעולה</th><th>רמה</th><th>דיוק כללי</th><th>תרגילים</th></tr>
-   ${["+","-","×"].concat(EN_IDS,HE_IDS).map(o=>{const k=S.skill[o];if(!k)return "";const p=k.n?Math.round(k.ok/k.n*100):0;return `<tr><td>${OPNAME[o]||o}${o==="+"||o==="-"||o==="×"?" "+o:""}</td><td><div class="bar"><div style="width:${k.level/6*100}%"></div></div>${k.level}/6</td><td>${p}%</td><td>${k.n}</td></tr>`;}).join("")}</table>
+   ${["+","-","×"].concat(EN_IDS,HE_IDS).map(o=>{const k=S.skill[o];if(!k)return "";const p=k.n?Math.round(k.ok/k.n*100):0;const cap=o==="+"||o==="-"||o==="×"?10:6;return `<tr><td>${OPNAME[o]||o}${o==="+"||o==="-"||o==="×"?" "+o:""}</td><td><div class="bar"><div style="width:${k.level/cap*100}%"></div></div>${k.level}/${cap}</td><td>${p}%</td><td>${k.n}</td></tr>`;}).join("")}</table>
    <h3>סיכום</h3><div class="grid">
    ${[["✅",S.totalCorrect,"נכונות"],["🎯",tot?Math.round(S.totalCorrect/tot*100)+"%":"-","דיוק"],["🔥",S.bestStreak,"רצף שיא"],["⭐",S.points,"נקודות"],["🪙",S.coins,"מטבעות"],
      ["👹",S.bosses,"בוסים"],["⚔️",`${S.arenaWins}/${S.arenaGames}`,"ניצחונות בזירה"],["🤝",`${S.duelWins}/${S.duelGames}`,"ניצחונות 1 על 1"],["🐣",petInfo().name,"חיית מחמד"],["🃏",S.cards.length,"קלפים"],["⚡",S.lightningBest,"שיא בזק"],["📅",S.dailyCount,"אתגרים יומיים"]].map(([e,v,l])=>`<div class="item"><b class="em">${e}</b><b>${v}</b><small>${l}</small></div>`).join("")}</div>
@@ -2346,7 +2506,7 @@ function onPlayAsk(conn,code,msg){
 function hostGo(conn,code){
   const friend=S.friends.find(f=>f.code===code)||{code,name:"חבר",avatar:"🧒"};
   const seed=Math.floor(Math.random()*2147483646)+1;
-  const level=Math.max(1,Math.min(6,Math.round(levelFor("math"))));
+  const level=Math.max(1,Math.min(10,Math.round(levelFor("math"))));
   const recent=(Array.isArray(S.asked.online)?S.asked.online:[]).filter(x=>typeof x==="string").slice(-30);
   sendTo(conn,{t:"go",seed,level,recent,total:8});
   frBegin(conn,{seed,level,recent,total:8,name:friend.name,avatar:friend.avatar,code},true);
@@ -2464,7 +2624,7 @@ function frBegin(conn,msg,host){
   const friend=S.friends.find(f=>f.code===code)||{code,name:cleanName(msg.name),avatar:cleanAv(msg.avatar)};
   const recent=Array.isArray(msg.recent)?msg.recent.filter(x=>typeof x==="string").slice(-30):[];
   F={conn,host:!!host,code:friend.code,name:friend.name||cleanName(msg.name),avatar:friend.avatar||cleanAv(msg.avatar),
-    rng:makeRng(msg.seed),level:Math.max(1,Math.min(6,Math.round(msg.level)||1)),bag:recent.slice(),
+    rng:makeRng(msg.seed),level:Math.max(1,Math.min(10,Math.round(msg.level)||1)),bag:recent.slice(),
     total:Math.max(1,Math.min(8,Math.round(msg.total)||8)),i:0,myScore:0,theirScore:0,mine:false,theirs:false,q:null,prev:"",timer:null,left:20,over:false};
   show("friendsScreen");
   frShowNext();
